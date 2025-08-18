@@ -3,722 +3,745 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-  <title>Şehir Keşif – Resmi Kurumlar</title>
+  <title>LemmOn</title>
   <meta name="theme-color" content="#0f172a"/>
+  
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
   <style>
-    :root{
-      --bg:#0b1020; --surface:#121833; --border:rgba(255,255,255,.08);
-      --muted:#2a3354; --text:#e6e9f5; --text-dim:#a9b1c7;
-      --brand:#f7d046; --brand-2:#ff7a00; --danger:#ef4444;
-      --success:#22c55e; --warn:#eab308; --radius:12px;
-      --shadow:0 10px 30px rgba(0,0,0,.30);
-      --shadow-soft:0 6px 18px rgba(0,0,0,.18);
-      --input-bg:rgba(255,255,255,.06); --input-border:rgba(255,255,255,.10);
-      --input-focus:rgba(247,208,70,.45);
+    :root {
+      --bg: #0b1020;
+      --surface: #121833;
+      --border: rgba(255,255,255,.08);
+      --muted: #2a3354;
+      --text: #e6e9f5;
+      --text-dim: #a9b1c7;
+      --brand: #f7d046;
+      --brand-2: #ff7a00;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --warn: #eab308;
+      --radius: 12px;
+      --shadow: 0 10px 30px rgba(0,0,0,.30);
+      --shadow-soft: 0 6px 18px rgba(0,0,0,.18);
+      --input-bg: rgba(255,255,255,.06);
+      --input-border: rgba(255,255,255,.10);
+      --input-focus: rgba(247,208,70,.45);
     }
-    html[data-theme="light"]{
-      --bg:#f7f8fb; --surface:#ffffff; --border:rgba(0,0,0,.08);
-      --muted:#eef1f7; --text:#0f172a; --text-dim:#475569;
-      --brand:#eab308; --brand-2:#fb923c; --danger:#dc2626;
-      --success:#16a34a; --warn:#d97706;
-      --shadow:0 8px 24px rgba(0,0,0,.10);
-      --shadow-soft:0 6px 14px rgba(0,0,0,.08);
-      --input-bg:#f1f5f9; --input-border:rgba(0,0,0,.08);
-      --input-focus:rgba(234,179,8,.45);
+    html[data-theme="light"] {
+      --bg: #f7f8fb;
+      --surface: #ffffff;
+      --border: rgba(0,0,0,.08);
+      --muted: #eef1f7;
+      --text: #0f172a;
+      --text-dim: #475569;
+      --brand: #eab308;
+      --brand-2: #fb923c;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --warn: #d97706;
+      --shadow: 0 8px 24px rgba(0,0,0,.10);
+      --shadow-soft: 0 6px 14px rgba(0,0,0,.08);
+      --input-bg: #f1f5f9;
+      --input-border: rgba(0,0,0,.08);
+      --input-focus: rgba(234,179,8,.45);
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      background:linear-gradient(180deg,var(--bg),color-mix(in oklab,var(--bg) 80%,#000 20%));
-      color:var(--text);
-      font-family:ui-sans-serif,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      background: linear-gradient(180deg, var(--bg), color-mix(in oklab, var(--bg) 80%, #000 20%));
+      color: var(--text);
+      font-family: ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
-    .container{max-width:560px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
-    header{
-      position:sticky;top:0;z-index:50;
-      backdrop-filter:blur(10px) saturate(150%);
-      background:linear-gradient(180deg,
-        color-mix(in oklab,var(--bg) 85%,#000 15%),
-        color-mix(in oklab,var(--bg) 70%,#000 30%)
-      );
-      border-bottom:1px solid var(--border);
+    .container { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; min-height: 100vh; }
+    header {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(10px) saturate(150%);
+      background: linear-gradient(180deg, color-mix(in oklab, var(--bg) 85%, #000 15%), color-mix(in oklab, var(--bg) 70%, #000 30%));
+      border-bottom: 1px solid var(--border);
     }
-    .row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px}
-    .brand{display:flex;align-items:center;gap:10px}
-    .logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--brand),var(--brand-2))}
-    h1{margin:0;font-size:16px;letter-spacing:.2px;user-select:none;cursor:pointer}
-    .icon-btn,.btn{
-      appearance:none;border:1px solid var(--border);
-      background:var(--input-bg);color:var(--text);
-      border-radius:10px;padding:8px 12px;
-      cursor:pointer;font-weight:700;
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px; }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .logo { width: 28px; height: 28px; border-radius: 8px; background: url('logo.png') center/cover no-repeat; }
+    h1 { margin: 0; font-size: 16px; letter-spacing: .2px; user-select: none; cursor: pointer; }
+    .icon-btn, .btn {
+      appearance: none; border: 1px solid var(--border); background: var(--input-bg);
+      color: var(--text); border-radius: 10px; padding: 8px 12px; cursor: pointer; font-weight: 700;
     }
-    .btn-primary{
-      border:none;
-      background:linear-gradient(135deg,var(--brand),var(--brand-2));
-      color:#101010;
-      box-shadow:0 8px 24px color-mix(in oklab,var(--brand) 25%,transparent);
+    .btn-primary {
+      border: none; background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      color: #101010; box-shadow: 0 8px 24px color-mix(in oklab, var(--brand) 25%, transparent);
     }
-    .btn-danger{
-      border:1px solid color-mix(in oklab,var(--danger) 30%,var(--border));
-      background:color-mix(in oklab,var(--danger) 15%,var(--input-bg));
-      color:color-mix(in oklab,var(--danger) 85%,#fff);
+    .btn-danger {
+      border: 1px solid color-mix(in oklab, var(--danger) 30%, var(--border));
+      background: color-mix(in oklab, var(--danger) 15%, var(--input-bg));
+      color: color-mix(in oklab, var(--danger) 85%, #fff);
     }
-    .icon-btn:active,.btn:active{transform:translateY(1px)}
-    .admin-chip{
-      display:none;align-items:center;gap:6px;font-size:12px;
-      padding:8px 10px;border-radius:999px;
-      background:color-mix(in oklab,var(--success) 22%,var(--bg));
-      border:1px solid color-mix(in oklab,var(--success) 35%,var(--border));
-      color:color-mix(in oklab,var(--success) 85%,#fff);
+    .icon-btn:active, .btn:active { transform: translateY(1px); }
+    .admin-chip {
+      display: none; align-items: center; gap: 6px; font-size: 12px; padding: 8px 10px; border-radius: 999px;
+      background: color-mix(in oklab, var(--success) 22%, var(--bg));
+      border: 1px solid color-mix(in oklab, var(--success) 35%, var(--border));
+      color: color-mix(in oklab, var(--success) 85%, #fff);
     }
-    .search{display:flex;gap:8px;padding:10px 12px}
-    .input,select{
-      flex:1;background:var(--input-bg);color:var(--text);
-      border:1px solid var(--input-border);border-radius:10px;
-      padding:10px 12px;outline:none;
+    .search { display: flex; gap: 8px; padding: 10px 12px; }
+    .input, select {
+      flex: 1; background: var(--input-bg); color: var(--text);
+      border: 1px solid var(--input-border); border-radius: 10px; padding: 10px 12px; outline: none;
     }
-    .input:focus,select:focus{
-      border-color:var(--input-focus);
-      box-shadow:0 0 0 3px color-mix(in oklab,var(--brand) 20%,transparent);
+    .input:focus, select:focus {
+      border-color: var(--input-focus);
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand) 20%, transparent);
     }
-    .filters{display:flex;gap:8px;padding:0 12px 12px;flex-wrap:wrap}
-    main{flex:1;display:flex;flex-direction:column;gap:12px;padding:12px}
-    .card{
-      background:linear-gradient(180deg,var(--surface),
-        color-mix(in oklab,var(--surface) 75%,#000 25%));
-      border:1px solid var(--border);
-      border-radius:12px;box-shadow:var(--shadow);
+    .filters { display: flex; gap: 8px; padding: 0 12px 12px; flex-wrap: wrap; }
+    main { flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 12px; }
+    .card {
+      background: linear-gradient(180deg, var(--surface), color-mix(in oklab, var(--surface) 75%, #000 25%));
+      border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow);
     }
-    .section-title{padding:10px;font-weight:800;letter-spacing:.2px}
-    .list{display:flex;flex-direction:column;gap:10px;padding:10px}
-    .item{
-      border:1px solid var(--border);border-radius:10px;padding:10px;
-      background:color-mix(in oklab,var(--surface) 85%,var(--bg) 15%);
-      box-shadow:var(--shadow-soft);
+    .section-title { padding: 10px; font-weight: 800; letter-spacing: .2px; }
+    .toolbar { display: flex; gap: 8px; padding: 10px; }
+    .list { display: flex; flex-direction: column; gap: 10px; padding: 10px; }
+    .item {
+      border: 1px solid var(--border); border-radius: 10px; padding: 10px;
+      background: color-mix(in oklab, var(--surface) 85%, var(--bg) 15%);
+      box-shadow: var(--shadow-soft);
     }
-    .item .top{display:flex;justify-content:space-between;gap:10px;align-items:center}
-    .title{font-weight:800;letter-spacing:.2px}
-    .muted{color:var(--text-dim);font-size:12px}
-    .badges{display:flex;gap:6px;flex-wrap:wrap}
-    .actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
-    .sheet{
-      position:fixed;inset:auto 0 0 0;max-height:85dvh;
-      background:var(--surface);
-      border-top-left-radius:16px;border-top-right-radius:16px;
-      border:1px solid var(--border);
-      box-shadow:0 -8px 26px rgba(0,0,0,.28);
-      transform:translateY(105%);transition:transform .25s ease;
-      z-index:80;
+    .item .top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .title { font-weight: 800; letter-spacing: .2px; }
+    .muted { color: var(--text-dim); font-size: 12px; }
+    .actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+    .sheet {
+      position: fixed; inset: auto 0 0 0; max-height: 85vh; background: var(--surface);
+      border-top-left-radius: 16px; border-top-right-radius: 16px; border: 1px solid var(--border);
+      box-shadow: 0 -8px 26px rgba(0,0,0,.28); transform: translateY(105%); transition: transform .25s ease; z-index: 80;
     }
-    .sheet.open{transform:translateY(0)}
-    .sheet-header{display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid var(--border)}
-    .sheet-title{font-weight:800}
-    .sheet-body{padding:12px;overflow:auto;max-height:calc(85dvh - 54px)}
-    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .form-grid .full{grid-column:1 / -1}
-    label.small{font-size:12px;color:var(--text-dim);display:block;margin-bottom:6px}
-    input[type="text"],input[type="tel"],input[type="time"],input[type="number"],textarea,select{
-      width:100%;padding:10px 12px;border-radius:10px;
-      border:1px solid var(--input-border);
-      background:var(--input-bg);color:var(--text);outline:none;
+    .sheet.open { transform: translateY(0); }
+    .sheet-header {
+      display: flex; align-items: center; justify-content: space-between; padding: 12px;
+      border-bottom: 1px solid var(--border);
     }
-    textarea{min-height:72px;resize:vertical}
-    input:focus,textarea:focus,select:focus{
-      border-color:var(--input-focus);
-      box-shadow:0 0 0 3px color-mix(in oklab,var(--brand) 20%,transparent);
+    .sheet-title { font-weight: 800; }
+    .sheet-body { padding: 12px; overflow: auto; max-height: calc(85vh - 54px); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .form-grid .full { grid-column: 1 / -1; }
+    label.small { font-size: 12px; color: var(--text-dim); display: block; margin-bottom: 6px; }
+    input[type="text"], input[type="tel"], input[type="time"], input[type="number"], textarea, select {
+      width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--input-border);
+      background: var(--input-bg); color: var(--text); outline: none;
     }
-    .form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:90}
-    .modal.open{display:flex}
-    .modal-card{width:min(92vw,420px);background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:14px}
-    .modal-title{font-weight:800;margin-bottom:10px}
-    .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
-    #toast{
-      position:fixed;left:50%;transform:translateX(-50%);
-      bottom:72px;background:rgba(0,0,0,.75);color:#fff;
-      padding:10px 14px;border-radius:10px;font-weight:700;
-      z-index:200;opacity:0;pointer-events:none;transition:opacity .18s;
+    textarea { min-height: 72px; resize: vertical; }
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--input-focus);
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand) 20%, transparent);
     }
-    html[data-theme="light"] #toast{background:rgba(0,0,0,.78)}
-    footer{padding:14px;text-align:center;color:var(--text-dim);font-size:12px}
-    .star{cursor:pointer;user-select:none;font-size:18px;line-height:1}
-    .star.fav{color:#ffd54f;text-shadow:0 0 8px rgba(255,213,79,.3)}
+    .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+    .modal {
+      position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none;
+      align-items: center; justify-content: center; z-index: 90;
+    }
+    .modal.open { display: flex; }
+    .modal-card {
+      width: min(92vw, 420px); background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; box-shadow: var(--shadow); padding: 14px;
+    }
+    .modal-title { font-weight: 800; margin-bottom: 10px; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+    #toast {
+      position: fixed; left: 50%; transform: translateX(-50%); bottom: 72px;
+      background: rgba(0,0,0,.75); color: #fff; padding: 10px 14px; border-radius: 10px; font-weight: 700;
+      z-index: 200; opacity: 0; pointer-events: none; transition: opacity .18s;
+    }
+    html[data-theme="light"] #toast { background: rgba(0,0,0,.78); }
+    footer { padding: 14px; text-align: center; color: var(--text-dim); font-size: 12px; }
+    .star { cursor: pointer; user-select: none; font-size: 18px; line-height: 1; }
+    .star.fav { color: #ffd54f; text-shadow: 0 0 8px rgba(255,213,79,.3); }
   </style>
 </head>
 <body>
-<div class="container">
-  <header>
-    <div class="row">
-      <div class="brand">
-        <div class="logo"></div>
-        <h1 id="appTitle" title="7 kez dokun: Admin">Şehir Keşif</h1>
+  <div class="container">
+    <header>
+      <div class="row">
+        <div class="brand">
+          <div class="logo" aria-label="LemmOn Logo" role="img"></div>
+          <h1 id="appTitle" title="7 kez dokun: Admin">LemmOn</h1>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="adminChip" class="admin-chip">Admin</span>
+          <button id="btnTheme" class="icon-btn" aria-label="Tema Değiştir">🌙</button>
+        </div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <span id="adminChip" class="admin-chip">Admin</span>
-        <button id="btnTheme" class="icon-btn" aria-label="Tema Değiştir">🌙</button>
+      <div class="search">
+        <input id="txtSearch" class="input" placeholder="Ara"/>
+        <button id="btnLocate" class="btn" title="Yakınımda">Yakınımda</button>
       </div>
-    </div>
-    <div class="search">
-      <input id="txtSearch" class="input" placeholder="Ara: kurum adı, ilçe..."/>
-      <button id="btnLocate" class="btn" title="Yakınımda">Yakınımda</button>
-    </div>
-    <div class="filters">
-      <select id="selDistrict" title="İlçe">
-        <option value="">İlçe (tümü)</option>
-      </select>
-      <select id="selCategory" title="Kategori">
-        <option value="">Kategori (tümü)</option>
-      </select>
-      <label class="btn" style="display:flex;align-items:center;gap:8px">
-        <input id="chkOpen" type="checkbox"/> Şimdi Açık
-      </label>
-      <button id="btnClear" class="btn">Temizle</button>
-    </div>
-  </header>
-  <main>
-    <div class="card">
-      <div class="section-title">
-        Kurumlar (<span id="countBadge">0</span>)
-      </div>
-      <div class="toolbar">
-        <button id="btnExport" class="btn">Dışa Aktar (JSON)</button>
-        <label class="btn" style="margin:0">İçe Aktar
-          <input id="fileImport" type="file" accept="application/json" style="display:none"/>
+      <div class="filters">
+        <select id="selDistrict" title="İlçe">
+          <option value="">İlçe (tümü)</option>
+        </select>
+        <select id="selCategory" title="Kategori">
+          <option value="">Kategori (tümü)</option>
+        </select>
+        <label class="btn" style="display:flex;align-items:center;gap:8px">
+          <input id="chkOpen" type="checkbox"/> Şimdi Açık
         </label>
-        <button id="btnClearStorage" class="btn btn-danger">Tüm Veriyi Sıfırla</button>
+        <button id="btnClear" class="btn">Temizle</button>
       </div>
-      <div id="list" class="list"></div>
-    </div>
-  </main>
-  <footer>Şehir Keşif ©2025</footer>
-</div>
+    </header>
 
-<!-- Admin Panel -->
-<div id="adminSheet" class="sheet" aria-hidden="true">
-  <div class="sheet-header">
-    <div class="sheet-title">Admin Panel</div>
-    <div style="display:flex;gap:8px">
-      <button id="btnCloseAdmin" class="btn">Kapat</button>
-      <button id="btnSignOutAdmin" class="btn btn-danger">Admini Kapat</button>
-    </div>
+    <main>
+      <div class="card">
+        <div class="section-title">Kayıtlar (<span id="countBadge">0</span>)</div>
+        <div class="toolbar">
+          <button id="btnExport" class="btn">Dışa Aktar (JSON)</button>
+          <label class="btn" style="margin:0">
+            İçe Aktar
+            <input id="fileImport" type="file" accept="application/json" style="display:none"/>
+          </label>
+          <button id="btnClearStorage" class="btn btn-danger">Tüm Veriyi Sıfırla</button>
+        </div>
+        <div id="list" class="list"></div>
+      </div>
+    </main>
+
+    <footer>LemmOn ©2025</footer>
   </div>
-  <div class="sheet-body">
-    <div class="card" style="margin-bottom:12px">
-      <div class="section-title">Yeni İlçe Ekle</div>
-      <div class="form-grid">
-        <div class="full">
-          <label class="small" for="f_newDistrict">İlçe Adı</label>
-          <input id="f_newDistrict" type="text" placeholder="Yeni ilçe"/>
-        </div>
-      </div>
-      <div class="form-actions">
-        <button id="btnAddDistrict" class="btn btn-primary">Ekle</button>
+
+  <!-- Admin Panel -->
+  <div id="adminSheet" class="sheet" aria-hidden="true">
+    <div class="sheet-header">
+      <div class="sheet-title">Admin Panel</div>
+      <div style="display:flex;gap:8px">
+        <button id="btnCloseAdmin" class="btn">Kapat</button>
+        <button id="btnSignOutAdmin" class="btn btn-danger">Admini Kapat</button>
       </div>
     </div>
-    <div class="card" style="margin-bottom:12px">
-      <div class="section-title">Yeni Kategori Ekle</div>
-      <div class="form-grid">
-        <div class="full">
-          <label class="small" for="f_newCategory">Kategori Adı</label>
-          <input id="f_newCategory" type="text" placeholder="Yeni kategori"/>
-        </div>
-      </div>
-      <div class="form-actions">
-        <button id="btnAddCategory" class="btn btn-primary">Ekle</button>
-      </div>
-    </div>
-    <div class="card" style="margin-bottom:12px">
-      <div class="section-title">Yeni Mekan Ekle</div>
-      <div class="list" style="padding-top:0">
+    <div class="sheet-body">
+      <div class="card" style="margin-bottom:12px">
+        <div class="section-title">Yeni İlçe Ekle</div>
         <div class="form-grid">
           <div class="full">
-            <label class="small" for="f_name">Ad</label>
-            <input id="f_name" type="text" placeholder="Kurum/Mekan adı"/>
-          </div>
-          <div>
-            <label class="small" for="f_category">Kategori</label>
-            <select id="f_category"></select>
-          </div>
-          <div>
-            <label class="small" for="f_district">İlçe</label>
-            <select id="f_district"></select>
-          </div>
-          <div>
-            <label class="small" for="f_open">Açılış</label>
-            <input id="f_open" type="time" value="09:00"/>
-          </div>
-          <div>
-            <label class="small" for="f_close">Kapanış</label>
-            <input id="f_close" type="time" value="17:00"/>
-          </div>
-          <div class="full">
-            <label class="small" for="f_address">Adres</label>
-            <input id="f_address" type="text" placeholder="Adres (opsiyonel)"/>
-          </div>
-          <div>
-            <label class="small" for="f_phone">Telefon</label>
-            <input id="f_phone" type="tel" placeholder="+90 ..."/>
-          </div>
-          <div>
-            <label class="small" for="f_oncall">Nöbetçi</label>
-            <select id="f_oncall">
-              <option value="false" selected>Hayır</option>
-              <option value="true">Evet</option>
-            </select>
-          </div>
-          <div>
-            <label class="small" for="f_lat">Lat</label>
-            <input id="f_lat" type="number" step="0.000001" placeholder="36.80"/>
-          </div>
-          <div>
-            <label class="small" for="f_lng">Lng</label>
-            <input id="f_lng" type="number" step="0.000001" placeholder="34.62"/>
-          </div>
-          <div class="full">
-            <label class="small" for="f_note">Not</label>
-            <textarea id="f_note" placeholder="Faks, E-posta vb."></textarea>
+            <label class="small" for="f_newDistrict">İlçe Adı</label>
+            <input id="f_newDistrict" type="text" placeholder="Yeni ilçe"/>
           </div>
         </div>
-      </div>
-      <div class="form-actions">
-        <button id="btnResetForm" class="btn">Temizle</button>
-        <button id="btnAddPlace" class="btn btn-primary">Ekle</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="section-title">Kayıtlar</div>
-      <div id="adminList" class="list"></div>
-    </div>
-  </div>
-</div>
-
-<!-- PIN Modal -->
-<div id="pinModal" class="modal" aria-hidden="true">
-  <div class="modal-card">
-    <div class="modal-title">Admin PIN</div>
-    <div>
-      <label class="small" for="pinInput">6 haneli PIN gir</label>
-      <input id="pinInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="******" class="input"/>
-    </div>
-    <div class="modal-actions">
-      <button id="btnCancelPin" class="btn">İptal</button>
-      <button id="btnSubmitPin" class="btn btn-primary">Giriş</button>
-    </div>
-  </div>
-</div>
-
-<!-- Toast -->
-<div id="toast" role="status" aria-live="polite"></div>
-
-<script>
-const $=(s,r=document)=>
-  r.querySelector(s);
-const $$=(s,r=document)=>
-  Array.from(r.querySelectorAll(s));
-
-function toast(msg,ms=1600){
-  const t=$("#toast");
-  t.textContent=msg;
-  t.style.opacity="1";
-  clearTimeout(toast._timer);
-  toast._timer=setTimeout(()=>{t.style.opacity="0"},ms);
-}
-
-/* Tema */
-const THEME_KEY="city_theme";
-function setTheme(theme){
-  document.documentElement.setAttribute("data-theme",theme);
-  localStorage.setItem(THEME_KEY,theme);
-  $("#btnTheme").textContent=theme==="light"?"🌙":"☀️";
-}
-function initTheme(){
-  const saved=localStorage.getItem(THEME_KEY);
-  if(saved){setTheme(saved);return}
-  const prefersLight=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches;
-  setTheme(prefersLight?"light":"dark");
-}
-$("#btnTheme").onclick=()=>{
-  const cur=document.documentElement.getAttribute("data-theme")||"dark";
-  setTheme(cur==="dark"?"light":"dark");
-};
-initTheme();
-
-/* Admin */
-const ADMIN_KEY="city_admin";
-const ADMIN_TTL_DAYS=7;
-const PIN_PLAINTEXT="109168";
-function nowTs(){return Date.now()}
-function addDays(ts,d){return ts+d*24*60*60*1000}
-function getAdmin(){try{return JSON.parse(localStorage.getItem(ADMIN_KEY)||"null")}catch{return null}}
-function setAdmin(s){localStorage.setItem(ADMIN_KEY,JSON.stringify(s))}
-function clearAdmin(){localStorage.removeItem(ADMIN_KEY);$("#adminChip").style.display="none";closeAdminSheet()}
-function isAdminActive(){
-  const s=getAdmin();
-  if(!s)return false;
-  return s.expiresAt&&s.expiresAt>nowTs();
-}
-function refreshAdminUI(){
-  $("#adminChip").style.display=isAdminActive()?"inline-flex":"none";
-}
-$("#btnSignOutAdmin").onclick=()=>{
-  clearAdmin();toast("Admin kapatıldı");
-};
-
-let tapCount=0;
-let tapWindowTimer=null;
-const TAP_WINDOW_MS=3000;
-$("#appTitle").addEventListener("click",()=>{
-  tapCount++;
-  if(tapCount===1){
-    clearTimeout(tapWindowTimer);
-    tapWindowTimer=setTimeout(()=>{tapCount=0},TAP_WINDOW_MS);
-  }
-  if(tapCount>=7){
-    tapCount=0;clearTimeout(tapWindowTimer);
-    if(isAdminActive())openAdminSheet();else openPinModal();
-  }
-});
-
-const pinModal=$("#pinModal");
-function openPinModal(){
-  pinModal.classList.add("open");
-  $("#pinInput").value="";
-  $("#pinInput").focus();
-}
-function closePinModal(){
-  pinModal.classList.remove("open");
-}
-$("#btnCancelPin").onclick=()=>closePinModal();
-$("#btnSubmitPin").onclick=submitPin;
-$("#pinInput").addEventListener("keydown",e=>{if(e.key==="Enter")submitPin()});
-function submitPin(){
-  const entered=$("#pinInput").value.trim();
-  if(entered.length!==6){toast("6 haneli PIN gir");return}
-  if(entered===PIN_PLAINTEXT){
-    const now=nowTs();
-    setAdmin({grantedAt:now,expiresAt:addDays(now,ADMIN_TTL_DAYS)});
-    refreshAdminUI();closePinModal();toast("Admin aktif");openAdminSheet();
-  } else {toast("Hatalı PIN")}
-}
-
-const adminSheet=$("#adminSheet");
-function openAdminSheet(){
-  adminSheet.classList.add("open");
-  adminSheet.setAttribute("aria-hidden","false");
-  renderAdminList();
-}
-function closeAdminSheet(){
-  adminSheet.classList.remove("open");
-  adminSheet.setAttribute("aria-hidden","true");
-}
-$("#btnCloseAdmin").onclick=()=>closeAdminSheet();
-$("#adminChip").onclick=()=>openAdminSheet();
-
-/* Veri */
-const PLACES_KEY="city_places_v1";
-const FAV_KEY="city_favs_v1";
-const initialPlaces=[
-  {name:"Mersin Valiliği",category:"Resmi Kurum",district:"Yenişehir",address:"",phone:"0324 341 10 23",hours:{open:"09:00",close:"17:00"},lat:null,lng:null,note:""},
-  {name:"İl Emniyet Müdürlüğü",category:"Resmi Kurum",district:"Yenişehir",address:"",phone:"0324 328 42 90",hours:{open:"09:00",close:"17:00"},lat:null,lng:null,note:"Faks: 327 49 45"},
-  {name:"İl Jandarma Komutanlığı",category:"Resmi Kurum",district:"Akdeniz",address:"",phone:"0324 238 59 93",hours:{open:"09:00",close:"17:00"},lat:null,lng:null,note:"Faks: 238 70 07"},
-  {name:"Aile ve Sosyal Hizmetler Müdürlüğü",category:"Resmi Kurum",district:"Akdeniz",address:"",phone:"0324 237 61 07",hours:{open:"09:00",close:"17:00"},lat:null,lng:null,note:"Faks: 231 12 55"},
-  {name:"İl Milli Eğitim Müdürlüğü",category:"Resmi Kurum",district:"Yenişehir",address:"",phone:"0324 329 14 81",hours:{open:"09:00",close:"17:00"},lat:null,lng:null,note:"Belgegeçer: 327 35 18"},
-  {name:"Sosyal Güvenlik Kurumu (SGK)",category:"Resmi Kurum",district:"Akdeniz",address:"",phone:"0324 238 71 00",hours:{open:"09:00",close:"17:00"},lat:null,lng:null,note:"E-posta (adres belirtilmedi)"},
-  {name:"AFAD Müdürlüğü",category:"Resmi Kurum",district:"Yenişehir",address:"",phone:"0324 341 54 25",hours:{open:"09:00",close:"17:00"},lat:null,lng:null,note:"Faks: 341 62 88"},
-  {name:"Sağlık Müdürlüğü",category:"Resmi Kurum",district:"Akdeniz",address:"",phone:"0324 238 28 10",hours:{open:"09:00",close:"17:00"},lat:null,lng:null,note:""},
-  {name:"Kültür ve Turizm Müdürlüğü",category:"Resmi Kurum",district:"Akdeniz",address:"",phone:"0324 238 32 70 / 71",hours:{open:"09:00",close:"17:00"},lat:null,lng:null,note:"Faks: 233 49 28"},
-  {name:"Nüfus ve Vatandaşlık Müdürlüğü",category:"Resmi Kurum",district:"Toroslar",address:"",phone:"0324 238 27 51 / 237 22 23",hours:{open:"09:00",close:"17:00"},lat:null,lng:null,note:""},
-  {name:"Gençlik ve Spor Müdürlüğü",category:"Resmi Kurum",district:"Yenişehir",address:"",phone:"0324 325 33 36",hours:{open:"09:00",close:"17:00"},lat:null,lng:null,note:"Belgegeçer (numara yok)"},
-  {name:"Tarım ve Orman Müdürlüğü",category:"Resmi Kurum",district:"Yenişehir",address:"",phone:"0324 326 40 06",hours:{open:"09:00",close:"17:00"},lat:null,lng:null,note:"Faks: 326 40 12"},
-  {name:"BTK Mersin Bölge Müdürlüğü",category:"Resmi Kurum",district:"Akdeniz",address:"",phone:"0324 241 18 60",hours:{open:"09:00",close:"17:00"},lat:null,lng:null,note:""},
-  {name:"Serbest Bölge Müdürlüğü",category:"Resmi Kurum",district:"Akdeniz",address:"Karaduvar",phone:"+90 324 238 75 90",hours:{open:"09:00",close:"17:00"},lat:null,lng:null,note:""}
-];
-function uid(){return Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4)}
-function loadPlaces(){try{const raw=localStorage.getItem(PLACES_KEY);if(!raw){const withIds=initialPlaces.map(p=>({id:uid(),...p}));localStorage.setItem(PLACES_KEY,JSON.stringify(withIds));return withIds}const arr=JSON.parse(raw);return Array.isArray(arr)?arr:[]}catch{return[]}}
-function savePlaces(arr){localStorage.setItem(PLACES_KEY,JSON.stringify(arr))}
-function loadFavs(){try{return JSON.parse(localStorage.getItem(FAV_KEY)||"[]")}catch{return[]}}
-function saveFavs(arr){localStorage.setItem(FAV_KEY,JSON.stringify(arr))}
-
-/* State */
-const state={query:"",district:"",category:"",openOnly:false,my:{lat:null,lng:null},places:[],favs:[]};
-
-/* Helpers */
-function haversine(lat1,lon1,lat2,lon2){if([lat1,lon1,lat2,lon2].some(v=>v==null))return null;const toRad=d=>d*Math.PI/180,R=6371;const dLat=toRad(lat2-lat1),dLon=toRad(lon2-lon1);const a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));return R*c}
-function mapsLink(lat,lng,label){if(lat==null||lng==null)return null;const q=encodeURIComponent(label||"Konum");if(/iPhone|iPad|Macintosh/.test(navigator.userAgent))return `http://maps.apple.com/?ll=${lat},${lng}&q=${q}`;return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
-function nowHHMM(){return new Date().toTimeString().slice(0,5)}
-function isOpenNow(p){const h=p.hours||{};const t=nowHHMM();if(h.oncall)return true;if(h.open&&h.close)return t>=h.open&&t<h.close;return false}
-function isFav(id){return state.favs.includes(id)}
-
-function toggleFav(id){
-  if(isFav(id))state.favs=state.favs.filter(x=>x!==id);
-  else state.favs.push(id);
-  saveFavs(state.favs);
-  render();
-}
-
-/* Populate selects */
-function populateDistricts(){
-  const sel=document.getElementById('selDistrict');
-  const fsel=document.getElementById('f_district');
-  sel.innerHTML='<option value="">İlçe (tümü)</option>';
-  fsel.innerHTML='';
-  state.places.forEach(p=>{
-    if(!state.districts.includes(p.district))state.districts.push(p.district);
-  });
-  state.districts.forEach(d=>{
-    sel.insertAdjacentHTML('beforeend',`<option>${d}</option>`);
-    fsel.insertAdjacentHTML('beforeend',`<option>${d}</option>`);
-  });
-}
-function populateCategories(){
-  const sel=document.getElementById('selCategory');
-  const fsel=document.getElementById('f_category');
-  sel.innerHTML='<option value="">Kategori (tümü)</option>';
-  fsel.innerHTML='';
-  state.places.forEach(p=>{
-    if(!state.categories.includes(p.category))state.categories.push(p.category);
-  });
-  state.categories.forEach(c=>{
-    sel.insertAdjacentHTML('beforeend',`<option>${c}</option>`);
-    fsel.insertAdjacentHTML('beforeend',`<option>${c}</option>`);
-  });
-}
-
-/* Render list */
-function render(){
-  const q=document.getElementById('txtSearch').value.trim().toLowerCase();
-  state.query=q;
-  state.district=document.getElementById('selDistrict').value;
-  state.category=document.getElementById('selCategory').value;
-  state.openOnly=document.getElementById('chkOpen').checked;
-  let results=state.places.filter(p=>{
-    if(state.query && !p.name.toLowerCase().includes(state.query))return false;
-    if(state.district && p.district!==state.district)return false;
-    if(state.category && p.category!==state.category)return false;
-    if(state.openOnly && !isOpenNow(p))return false;
-    return true;
-  });
-  const list=document.getElementById('list');
-  list.innerHTML='';
-  results.forEach(p=>{
-    const fav=state.favs.includes(p.id);
-    const el=document.createElement('div');
-    el.className='item';
-    el.innerHTML=`
-      <div class="top">
-        <span class="title">${p.name}</span>
-        <span class="star${fav?' fav':''}" data-id="${p.id}">&#9733;</span>
-      </div>
-      <div class="muted">
-        ${p.category} | ${p.district} | Tel: ${p.phone}
-        | Saat: ${p.hours.open}–${p.hours.close}
-        ${isOpenNow(p)?'| <strong style="color:var(--success)">Açık</strong>':''}
-      </div>
-    `;
-    list.appendChild(el);
-  });
-  document.getElementById('countBadge').textContent=results.length;
-  document.querySelectorAll('.star').forEach(s=>s.onclick=()=>{
-    toggleFav(s.getAttribute('data-id'));
-  });
-}
-
-/* Admin List */
-function renderAdminList(){
-  const list=document.getElementById('adminList');
-  list.innerHTML='';
-  state.places.forEach(p=>{
-    const el=document.createElement('div');
-    el.className='item';
-    el.innerHTML=`
-      <div class="top">
-        <span class="title">${p.name}</span>
-        <div class="actions">
-          <button class="btn btn-primary" data-action="edit" data-id="${p.id}">Düzenle</button>
-          <button class="btn btn-danger" data-action="delete" data-id="${p.id}">Sil</button>
+        <div class="form-actions">
+          <button id="btnAddDistrict" class="btn btn-primary">Ekle</button>
         </div>
       </div>
-      <div class="muted">${p.category} | ${p.district} | Tel: ${p.phone}</div>
-    `;
-    list.appendChild(el);
-  });
-  list.querySelectorAll('button').forEach(btn=>{
-    btn.onclick=()=>adminAction(btn.getAttribute('data-action'),btn.getAttribute('data-id'));
-  });
-}
 
-/* Admin Actions */
-function adminAction(action,id){
-  if(action==='delete'){
-    if(confirm('Silinsin mi?')){
-      state.places=state.places.filter(p=>p.id!==id);
-      savePlaces(state.places);
-      initApp();
+      <div class="card" style="margin-bottom:12px">
+        <div class="section-title">Yeni Kategori Ekle</div>
+        <div class="form-grid">
+          <div class="full">
+            <label class="small" for="f_newCategory">Kategori Adı</label>
+            <input id="f_newCategory" type="text" placeholder="Yeni kategori"/>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button id="btnAddCategory" class="btn btn-primary">Ekle</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:12px">
+        <div class="section-title">Yeni Kayıt Ekle</div>
+        <div class="list" style="padding-top:0">
+          <div class="form-grid">
+            <div class="full">
+              <label class="small" for="f_name">Ad</label>
+              <input id="f_name" type="text" placeholder="Ad"/>
+            </div>
+            <div>
+              <label class="small" for="f_category">Kategori</label>
+              <select id="f_category"></select>
+            </div>
+            <div>
+              <label class="small" for="f_district">İlçe</label>
+              <select id="f_district"></select>
+            </div>
+            <div>
+              <label class="small" for="f_open">Açılış</label>
+              <input id="f_open" type="time" value="09:00"/>
+            </div>
+            <div>
+              <label class="small" for="f_close">Kapanış</label>
+              <input id="f_close" type="time" value="17:00"/>
+            </div>
+            <div class="full">
+              <label class="small" for="f_address">Adres</label>
+              <input id="f_address" type="text" placeholder="Adres (opsiyonel)"/>
+            </div>
+            <div>
+              <label class="small" for="f_phone">Telefon</label>
+              <input id="f_phone" type="tel" placeholder="+90 ..."/>
+            </div>
+            <div>
+              <label class="small" for="f_oncall">Nöbetçi</label>
+              <select id="f_oncall">
+                <option value="false" selected>Hayır</option>
+                <option value="true">Evet</option>
+              </select>
+            </div>
+            <div>
+              <label class="small" for="f_lat">Lat</label>
+              <input id="f_lat" type="number" step="0.000001" placeholder="36.80"/>
+            </div>
+            <div>
+              <label class="small" for="f_lng">Lng</label>
+              <input id="f_lng" type="number" step="0.000001" placeholder="34.62"/>
+            </div>
+            <div class="full">
+              <label class="small" for="f_note">Not</label>
+              <textarea id="f_note" placeholder="Not"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button id="btnResetForm" class="btn">Temizle</button>
+          <button id="btnAddPlace" class="btn btn-primary">Ekle</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Kayıtlar</div>
+        <div id="adminList" class="list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIN Modal -->
+  <div id="pinModal" class="modal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-title">Admin PIN</div>
+      <div>
+        <label class="small" for="pinInput">6 haneli PIN gir</label>
+        <input id="pinInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="******" class="input"/>
+      </div>
+      <div class="modal-actions">
+        <button id="btnCancelPin" class="btn">İptal</button>
+        <button id="btnSubmitPin" class="btn btn-primary">Giriş</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // Seçiciler
+    const $ = (s, r=document) => r.querySelector(s);
+    const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+
+    // Toast
+    function toast(msg, ms=1600) {
+      const t = $("#toast");
+      t.textContent = msg;
+      t.style.opacity = "1";
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => t.style.opacity="0", ms);
     }
-  } else if(action==='edit'){
-    const p=state.places.find(p=>p.id===id);
-    if(!p)return;
-    // load into form
-    $('#f_name').value=p.name;
-    $('#f_category').value=p.category;
-    $('#f_district').value=p.district;
-    $('#f_open').value=p.hours.open;
-    $('#f_close').value=p.hours.close;
-    $('#f_address').value=p.address;
-    $('#f_phone').value=p.phone;
-    $('#f_oncall').value=p.hours.oncall?'true':'false';
-    $('#f_lat').value=p.lat||'';
-    $('#f_lng').value=p.lng||'';
-    $('#f_note').value=p.note;
-    $('#btnAddPlace').textContent='Güncelle';
-    $('#btnAddPlace').setAttribute('data-edit-id',id);
-    openAdminSheet();
-  }
-}
 
-/* Init */
-function initApp(){
-  state.places=loadPlaces();
-  state.favs=loadFavs();
-  state.districts=[];
-  state.categories=[];
-  populateDistricts();
-  populateCategories();
-  render();
-  refreshAdminUI();
-}
-
-/* Add District */
-$('#btnAddDistrict').onclick=()=>{
-  const v=$('#f_newDistrict').value.trim();
-  if(!v)return toast('İlçe adı gir');
-  if(state.districts.includes(v))return toast('Zaten var');
-  state.districts.push(v);
-  populateDistricts();
-  toast('İlçe eklendi');
-  $('#f_newDistrict').value='';
-};
-
-/* Add Category */
-$('#btnAddCategory').onclick=()=>{
-  const v=$('#f_newCategory').value.trim();
-  if(!v)return toast('Kategori adı gir');
-  if(state.categories.includes(v))return toast('Zaten var');
-  state.categories.push(v);
-  populateCategories();
-  toast('Kategori eklendi');
-  $('#f_newCategory').value='';
-};
-
-/* Add/Update Place */
-$('#btnAddPlace').onclick=()=>{
-  const data={
-    id:$('#btnAddPlace').getAttribute('data-edit-id')||uid(),
-    name:$('#f_name').value.trim(),
-    category:$('#f_category').value,
-    district:$('#f_district').value,
-    hours:{open:$('#f_open').value,close:$('#f_close').value,oncall:$('#f_oncall').value==='true'},
-    address:$('#f_address').value.trim(),
-    phone:$('#f_phone').value.trim(),
-    lat:$('#f_lat').value?parseFloat($('#f_lat').value):null,
-    lng:$('#f_lng').value?parseFloat($('#f_lng').value):null,
-    note:$('#f_note').value.trim()
-  };
-  if(!data.name||!data.category||!data.district)return toast('Zorunlu alanlar');
-  if($('#btnAddPlace').hasAttribute('data-edit-id')){
-    const id=$('#btnAddPlace').getAttribute('data-edit-id');
-    state.places=state.places.map(p=>p.id===id?data:p);
-    $('#btnAddPlace').removeAttribute('data-edit-id');
-    $('#btnAddPlace').textContent='Ekle';
-  } else {
-    state.places.push(data);
-  }
-  savePlaces(state.places);
-  initApp();
-  $('#btnResetForm').click();
-  toast('Kayıt kaydedildi');
-};
-
-/* Reset Form */
-$('#btnResetForm').onclick=()=>{
-  $('#f_name').value='';
-  $('#f_category').value='';
-  $('#f_district').value='';
-  $('#f_open').value='09:00';
-  $('#f_close').value='17:00';
-  $('#f_address').value='';
-  $('#f_phone').value='';
-  $('#f_oncall').value='false';
-  $('#f_lat').value='';
-  $('#f_lng').value='';
-  $('#f_note').value='';
-  $('#btnAddPlace').removeAttribute('data-edit-id');
-  $('#btnAddPlace').textContent='Ekle';
-};
-
-/* Export JSON */
-$('#btnExport').onclick=()=>{
-  const data=JSON.stringify(state.places,null,2);
-  const blob=new Blob([data],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url; a.download='places.json'; a.click();
-  URL.revokeObjectURL(url);
-};
-
-/* Import JSON */
-$('#fileImport').onchange=e=>{
-  const f=e.target.files[0];
-  if(!f)return;
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    try{
-      const arr=JSON.parse(ev.target.result);
-      if(Array.isArray(arr)){
-        state.places=arr;
-        savePlaces(arr);
-        initApp();
-        toast('Veri yüklendi');
-      } else toast('Geçersiz JSON');
-    }catch{
-      toast('Hata');
+    // Tema
+    const THEME_KEY="city_theme";
+    function setTheme(theme) {
+      document.documentElement.setAttribute("data-theme", theme);
+      localStorage.setItem(THEME_KEY, theme);
+      $("#btnTheme").textContent = theme==="light"?"🌙":"☀️";
     }
-  };
-  reader.readAsText(f);
-};
+    function initTheme() {
+      const saved = localStorage.getItem(THEME_KEY);
+      if(saved){ setTheme(saved); return; }
+      const prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+      setTheme(prefersLight?"light":"dark");
+    }
+    $("#btnTheme").onclick = ()=> {
+      const cur = document.documentElement.getAttribute("data-theme")||"dark";
+      setTheme(cur==="dark"?"light":"dark");
+    };
+    initTheme();
 
-/* Clear Storage */
-$('#btnClearStorage').onclick=()=>{
-  if(confirm('Tüm veriyi sil?')){
-    localStorage.removeItem(PLACES_KEY);
-    localStorage.removeItem(FAV_KEY);
-    initApp();
-    toast('Sıfırlandı');
-  }
-};
+    // Admin PIN
+    const ADMIN_KEY="city_admin", ADMIN_TTL_DAYS=7, PIN_PLAINTEXT="109168";
+    function nowTs(){ return Date.now(); }
+    function addDays(ts,d){ return ts + d*24*60*60*1000; }
+    function getAdmin(){ try{return JSON.parse(localStorage.getItem(ADMIN_KEY)||"null")}catch{return null} }
+    function setAdmin(s){ localStorage.setItem(ADMIN_KEY, JSON.stringify(s)); }
+    function clearAdmin(){ localStorage.removeItem(ADMIN_KEY); $("#adminChip").style.display="none"; closeAdminSheet(); }
+    function isAdminActive(){ const s=getAdmin(); return !!(s&&s.expiresAt&&s.expiresAt>nowTs()); }
+    function refreshAdminUI(){ $("#adminChip").style.display = isAdminActive()?"inline-flex":"none"; }
+    $("#btnSignOutAdmin").onclick = ()=>{ clearAdmin(); toast("Admin kapatıldı"); };
 
-/* Geolocation */
-$('#btnLocate').onclick=()=>{
-  if(navigator.geolocation){
-    navigator.geolocation.getCurrentPosition(pos=>{
-      state.my.lat=pos.coords.latitude;
-      state.my.lng=pos.coords.longitude;
+    let tapCount=0, tapWindowTimer=null;
+    const TAP_WINDOW_MS=3000;
+    $("#appTitle").addEventListener("click", ()=>{
+      tapCount++;
+      clearTimeout(tapWindowTimer);
+      tapWindowTimer=setTimeout(()=>tapCount=0, TAP_WINDOW_MS);
+      if(tapCount>=7){
+        tapCount=0;
+        if(isAdminActive()) openAdminSheet();
+        else openPinModal();
+      }
+    });
+
+    const pinModal=$("#pinModal");
+    function openPinModal(){ pinModal.classList.add("open"); $("#pinInput").value=""; $("#pinInput").focus(); }
+    function closePinModal(){ pinModal.classList.remove("open"); }
+    $("#btnCancelPin").onclick = closePinModal;
+    $("#btnSubmitPin").onclick = submitPin;
+    $("#pinInput").addEventListener("keydown", e=>{ if(e.key==="Enter") submitPin(); });
+    function submitPin(){
+      const entered=$("#pinInput").value.trim();
+      if(entered.length!==6){ toast("6 haneli PIN gir"); return; }
+      if(entered===PIN_PLAINTEXT){
+        const now=nowTs();
+        setAdmin({ grantedAt:now, expiresAt:addDays(now,ADMIN_TTL_DAYS) });
+        refreshAdminUI();
+        closePinModal();
+        toast("Admin aktif");
+        openAdminSheet();
+      } else {
+        toast("Hatalı PIN");
+      }
+    }
+
+    function openAdminSheet(){
+      const adminSheet=$("#adminSheet");
+      adminSheet.classList.add("open");
+      adminSheet.setAttribute("aria-hidden","false");
+      renderAdminList();
+    }
+    function closeAdminSheet(){
+      const adminSheet=$("#adminSheet");
+      adminSheet.classList.remove("open");
+      adminSheet.setAttribute("aria-hidden","true");
+    }
+    $("#btnCloseAdmin").onclick = closeAdminSheet;
+    $("#adminChip").onclick = openAdminSheet;
+
+    // Firebase Başlat
+    firebase.initializeApp({
+      apiKey: "AIzaSyA-q76A-JU1w6KigjqZuU-YDywKDBp3KSw",
+      authDomain: "lemmon-2e548.firebaseapp.com",
+      projectId: "lemmon-2e548",
+      storageBucket:"lemmon-2e548.firebasestorage.app",
+      messagingSenderId:"704438411759",
+      appId: "1:704438411759:web:63de3a656b2067feccd61a"
+    });
+    const db = firebase.firestore();
+    const placesCol = db.collection("places");
+
+    // LocalStorage helpers
+    const FAV_KEY="city_favs_v1";
+    function loadFavs(){ try{return JSON.parse(localStorage.getItem(FAV_KEY)||"[]")}catch{return[]} }
+    function saveFavs(arr){ localStorage.setItem(FAV_KEY, JSON.stringify(arr)); }
+
+    // State
+    const state={
+      query:"", district:"", category:"", openOnly:false,
+      my:{lat:null,lng:null}, places:[], favs:[], districts:[], categories:[]
+    };
+
+    // Helpers
+    function nowHHMM(){ return new Date().toTimeString().slice(0,5); }
+    function isOpenNow(p){
+      const h=p.hours||{};
+      const t=nowHHMM();
+      if(h.oncall) return true;
+      if(h.open&&h.close) return t>=h.open&&t<h.close;
+      return false;
+    }
+    function isFav(id){ return state.favs.includes(id); }
+    function toggleFav(id){
+      if(isFav(id)) state.favs=state.favs.filter(x=>x!==id);
+      else state.favs.push(id);
+      saveFavs(state.favs);
       render();
-    },()=>toast('Konum alınamadı'));
-  } else toast('Desteklenmiyor');
-};
+    }
+    function openMap(lat,lng){
+      if(lat==null||lng==null) return;
+      window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`,'_blank');
+    }
 
-/* Filters */
-$('#txtSearch').oninput=render;
-$('#selDistrict').onchange=render;
-$('#selCategory').onchange=render;
-$('#chkOpen').onchange=render;
+    // Populate selects
+    function populateDistricts(){
+      const sel=$("#selDistrict"), fsel=$("#f_district");
+      sel.innerHTML='<option value="">İlçe (tümü)</option>';
+      fsel.innerHTML='';
+      state.districts=[];
+      state.places.forEach(p=>{
+        if(!state.districts.includes(p.district)) state.districts.push(p.district);
+      });
+      state.districts.forEach(d=>{
+        sel.insertAdjacentHTML('beforeend',`<option>${d}</option>`);
+        fsel.insertAdjacentHTML('beforeend',`<option>${d}</option>`);
+      });
+    }
+    function populateCategories(){
+      const sel=$("#selCategory"), fsel=$("#f_category");
+      sel.innerHTML='<option value="">Kategori (tümü)</option>';
+      fsel.innerHTML='';
+      state.categories=[];
+      state.places.forEach(p=>{
+        if(!state.categories.includes(p.category)) state.categories.push(p.category);
+      });
+      state.categories.forEach(c=>{
+        sel.insertAdjacentHTML('beforeend',`<option>${c}</option>`);
+        fsel.insertAdjacentHTML('beforeend',`<option>${c}</option>`);
+      });
+    }
 
-/* Start */
-initApp();
-</script>
+    // Render main list
+    function render(){
+      state.query=$("#txtSearch").value.trim().toLowerCase();
+      state.district=$("#selDistrict").value;
+      state.category=$("#selCategory").value;
+      state.openOnly=$("#chkOpen").checked;
+
+      const results=state.places.filter(p=>{
+        if(state.query&&!p.name.toLowerCase().includes(state.query)) return false;
+        if(state.district&&p.district!==state.district) return false;
+        if(state.category&&p.category!==state.category) return false;
+        if(state.openOnly&&!isOpenNow(p)) return false;
+        return true;
+      });
+
+      const list=$("#list");
+      list.innerHTML='';
+      results.forEach(p=>{
+        const fav=isFav(p.id);
+        const item=document.createElement('div');
+        item.className='item';
+        item.innerHTML=`
+          <div class="top">
+            <span class="title">${p.name}</span>
+            <span class="star${fav?' fav':''}" data-id="${p.id}">&#9733;</span>
+          </div>
+          <div class="muted">
+            ${p.category} | ${p.district} ${p.phone?`| Tel: ${p.phone}`:''}
+            | Saat: ${p.hours.open}–${p.hours.close}
+            ${isOpenNow(p)?'| <strong style="color:var(--success)">Açık</strong>':''}
+          </div>
+          <div class="actions">
+            ${p.phone?`<a class="btn btn-primary" href="tel:${p.phone.replace(/\s+/g,'')}">Ara</a>`:''}
+            <button class="btn"${p.lat==null||p.lng==null?' disabled':''} onclick="openMap(${p.lat},${p.lng})">Konum</button>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+      $("#countBadge").textContent=results.length;
+      $$('.star').forEach(s=>s.onclick=()=>toggleFav(s.dataset.id));
+    }
+
+    // Render admin list
+    function renderAdminList(){
+      const adminList=$("#adminList");
+      adminList.innerHTML='';
+      state.places.forEach(p=>{
+        const item=document.createElement('div');
+        item.className='item';
+        item.innerHTML=`
+          <div class="top">
+            <span class="title">${p.name}</span>
+            <div class="actions">
+              <button class="btn btn-primary" data-action="edit" data-id="${p.id}">Düzenle</button>
+              <button class="btn btn-danger" data-action="delete" data-id="${p.id}">Sil</button>
+            </div>
+          </div>
+          <div class="muted">${p.category} | ${p.district}${p.phone?` | Tel: ${p.phone}`:''}</div>
+        `;
+        adminList.appendChild(item);
+      });
+      $$('#adminList button').forEach(btn=>btn.onclick=()=>adminAction(btn.dataset.action,btn.dataset.id));
+    }
+
+    // Admin actions
+    async function adminAction(action,id){
+      if(action==='delete'&&confirm('Silinsin mi?')){
+        await placesCol.doc(id).delete();
+        toast('Silindi');
+      }
+      if(action==='edit'){
+        const p=state.places.find(x=>x.id===id);
+        if(!p) return;
+        $('#f_name').value=p.name;
+        $('#f_category').value=p.category;
+        $('#f_district').value=p.district;
+        $('#f_open').value=p.hours.open;
+        $('#f_close').value=p.hours.close;
+        $('#f_address').value=p.address||'';
+        $('#f_phone').value=p.phone||'';
+        $('#f_oncall').value=p.hours.oncall?'true':'false';
+        $('#f_lat').value=p.lat??'';
+        $('#f_lng').value=p.lng??'';
+        $('#f_note').value=p.note||'';
+        $('#btnAddPlace').textContent='Güncelle';
+        $('#btnAddPlace').dataset.editId=id;
+        openAdminSheet();
+      }
+    }
+
+    // Add district/category
+    $('#btnAddDistrict').onclick=()=>{
+      const v=$('#f_newDistrict').value.trim();
+      if(!v) return toast('İlçe adı gir');
+      if(state.districts.includes(v)) return toast('Zaten var');
+      state.districts.push(v);
+      populateDistricts();
+      $('#f_newDistrict').value='';
+      toast('İlçe eklendi');
+    };
+    $('#btnAddCategory').onclick=()=>{
+      const v=$('#f_newCategory').value.trim();
+      if(!v) return toast('Kategori adı gir');
+      if(state.categories.includes(v)) return toast('Zaten var');
+      state.categories.push(v);
+      populateCategories();
+      $('#f_newCategory').value='';
+      toast('Kategori eklendi');
+    };
+
+    // Add/update place
+    $('#btnAddPlace').onclick=async ()=>{
+      const editId=$('#btnAddPlace').dataset.editId;
+      const data={
+        name:$('#f_name').value.trim(),
+        category:$('#f_category').value,
+        district:$('#f_district').value,
+        hours:{
+          open:$('#f_open').value,
+          close:$('#f_close').value,
+          oncall:$('#f_oncall').value==='true'
+        },
+        address:$('#f_address').value.trim(),
+        phone:$('#f_phone').value.trim(),
+        lat:$('#f_lat').value?parseFloat($('#f_lat').value):null,
+        lng:$('#f_lng').value?parseFloat($('#f_lng').value):null,
+        note:$('#f_note').value.trim()
+      };
+      if(!data.name||!data.category||!data.district) return toast('Zorunlu alanlar');
+
+      if(editId){
+        await placesCol.doc(editId).update(data);
+        delete $('#btnAddPlace').dataset.editId;
+        $('#btnAddPlace').textContent='Ekle';
+      } else {
+        await placesCol.add(data);
+      }
+      $('#btnResetForm').click();
+      toast('Kayıt kaydedildi');
+    };
+
+    // Reset form
+    $('#btnResetForm').onclick=()=>{
+      $('#f_name').value='';
+      $('#f_category').value='';
+      $('#f_district').value='';
+      $('#f_open').value='09:00';
+      $('#f_close').value='17:00';
+      $('#f_address').value='';
+      $('#f_phone').value='';
+      $('#f_oncall').value='false';
+      $('#f_lat').value='';
+      $('#f_lng').value='';
+      $('#f_note').value='';
+      delete $('#btnAddPlace').dataset.editId;
+      $('#btnAddPlace').textContent='Ekle';
+    };
+
+    // Export/Import/Clear
+    $('#btnExport').onclick=()=>{
+      const blob=new Blob([JSON.stringify(state.places,null,2)],{type:'application/json'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;
+      a.download='places.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+    $('#fileImport').onchange=e=>{
+      const f=e.target.files[0];
+      if(!f) return;
+      const reader=new FileReader();
+      reader.onload=async ev=>{
+        try{
+          const arr=JSON.parse(ev.target.result);
+          if(Array.isArray(arr)){
+            // Import to Firestore
+            const batch = db.batch();
+            arr.forEach(p=>{
+              const ref = p.id ? placesCol.doc(p.id) : placesCol.doc();
+              const {id, ...data} = p;
+              batch.set(ref, data, {merge: true});
+            });
+            await batch.commit();
+            toast('Veri yüklendi');
+          } else toast('Geçersiz JSON');
+        }catch{
+          toast('Hata');
+        }
+      };
+      reader.readAsText(f);
+    };
+    $('#btnClearStorage').onclick=async ()=>{
+      if(confirm('Tüm veriyi sil?')){
+        const snapshot = await placesCol.get();
+        const batch = db.batch();
+        snapshot.docs.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        toast('Sıfırlandı');
+      }
+    };
+
+    // Locate
+    $('#btnLocate').onclick=()=>{
+      if(!navigator.geolocation) return toast('Desteklenmiyor');
+      navigator.geolocation.getCurrentPosition(
+        pos=>{
+          state.my.lat=pos.coords.latitude;
+          state.my.lng=pos.coords.longitude;
+          toast('Konum güncellendi');
+        },
+        ()=>toast('Konum alınamadı')
+      );
+    };
+
+    // Clear filters
+    $('#btnClear').onclick=()=>{
+      $('#txtSearch').value='';
+      $('#selDistrict').value='';
+      $('#selCategory').value='';
+      $('#chkOpen').checked=false;
+      render();
+    };
+
+    // Filters change
+    $('#txtSearch').oninput=render;
+    $('#selDistrict').onchange=render;
+    $('#selCategory').onchange=render;
+    $('#chkOpen').onchange=render;
+
+    // Init
+    function initApp(){
+      state.favs=loadFavs();
+      state.districts=[];
+      state.categories=[];
+      placesCol.orderBy("name").onSnapshot(snapshot=>{
+        state.places=snapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
+        populateDistricts();
+        populateCategories();
+        render();
+        refreshAdminUI();
+      });
+    }
+    initApp();
+
+    // Global function
+    window.openMap=openMap;
+  </script>
 </body>
 </html>

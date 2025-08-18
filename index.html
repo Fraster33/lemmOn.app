@@ -104,7 +104,6 @@
       border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow);
     }
     .section-title { padding: 10px; font-weight: 800; letter-spacing: .2px; }
-    .toolbar { display: flex; gap: 8px; padding: 10px; }
     .list { display: flex; flex-direction: column; gap: 10px; padding: 10px; }
     .item {
       border: 1px solid var(--border); border-radius: 10px; padding: 10px;
@@ -196,14 +195,6 @@
     <main>
       <div class="card">
         <div class="section-title">Kayıtlar (<span id="countBadge">0</span>)</div>
-        <div class="toolbar">
-          <button id="btnExport" class="btn">Dışa Aktar (JSON)</button>
-          <label class="btn" style="margin:0">
-            İçe Aktar
-            <input id="fileImport" type="file" accept="application/json" style="display:none"/>
-          </label>
-          <button id="btnClearStorage" class="btn btn-danger">Tüm Veriyi Sıfırla</button>
-        </div>
         <div id="list" class="list"></div>
       </div>
     </main>
@@ -221,6 +212,17 @@
       </div>
     </div>
     <div class="sheet-body">
+      <div class="card" style="margin-bottom:12px">
+        <div class="section-title">Admin Araçları</div>
+        <div style="display:flex;gap:8px;padding:10px;flex-wrap:wrap">
+          <label class="btn" style="margin:0">
+            İçe Aktar
+            <input id="fileImport" type="file" accept="application/json" style="display:none"/>
+          </label>
+          <button id="btnClearStorage" class="btn btn-danger">Tüm Veriyi Sıfırla</button>
+        </div>
+      </div>
+
       <div class="card" style="margin-bottom:12px">
         <div class="section-title">Yeni İlçe Ekle</div>
         <div class="form-grid">
@@ -503,7 +505,7 @@
       state.openOnly=$("#chkOpen").checked;
 
       const results=state.places.filter(p=>{
-        if(state.query&&!p.name.toLowerCase().includes(state.query)) return false;
+        if(state.query&&!p.name?.toLowerCase().includes(state.query)) return false;
         if(state.district&&p.district!==state.district) return false;
         if(state.category&&p.category!==state.category) return false;
         if(state.openOnly&&!isOpenNow(p)) return false;
@@ -518,12 +520,12 @@
         item.className='item';
         item.innerHTML=`
           <div class="top">
-            <span class="title">${p.name}</span>
+            <span class="title">${p.name||''}</span>
             <span class="star${fav?' fav':''}" data-id="${p.id}">&#9733;</span>
           </div>
           <div class="muted">
-            ${p.category} | ${p.district} ${p.phone?`| Tel: ${p.phone}`:''}
-            | Saat: ${p.hours.open}–${p.hours.close}
+            ${p.category||''} | ${p.district||''}${p.phone?` | Tel: ${p.phone}`:''}
+            | Saat: ${p.hours?.open||'--:--'}–${p.hours?.close||'--:--'}
             ${isOpenNow(p)?'| <strong style="color:var(--success)">Açık</strong>':''}
           </div>
           <div class="actions">
@@ -546,13 +548,13 @@
         item.className='item';
         item.innerHTML=`
           <div class="top">
-            <span class="title">${p.name}</span>
+            <span class="title">${p.name||''}</span>
             <div class="actions">
               <button class="btn btn-primary" data-action="edit" data-id="${p.id}">Düzenle</button>
               <button class="btn btn-danger" data-action="delete" data-id="${p.id}">Sil</button>
             </div>
           </div>
-          <div class="muted">${p.category} | ${p.district}${p.phone?` | Tel: ${p.phone}`:''}</div>
+          <div class="muted">${p.category||''} | ${p.district||''}${p.phone?` | Tel: ${p.phone}`:''}</div>
         `;
         adminList.appendChild(item);
       });
@@ -568,14 +570,14 @@
       if(action==='edit'){
         const p=state.places.find(x=>x.id===id);
         if(!p) return;
-        $('#f_name').value=p.name;
-        $('#f_category').value=p.category;
-        $('#f_district').value=p.district;
-        $('#f_open').value=p.hours.open;
-        $('#f_close').value=p.hours.close;
+        $('#f_name').value=p.name||'';
+        $('#f_category').value=p.category||'';
+        $('#f_district').value=p.district||'';
+        $('#f_open').value=p.hours?.open||'09:00';
+        $('#f_close').value=p.hours?.close||'17:00';
         $('#f_address').value=p.address||'';
         $('#f_phone').value=p.phone||'';
-        $('#f_oncall').value=p.hours.oncall?'true':'false';
+        $('#f_oncall').value=p.hours?.oncall?'true':'false';
         $('#f_lat').value=p.lat??'';
         $('#f_lng').value=p.lng??'';
         $('#f_note').value=p.note||'';
@@ -653,16 +655,7 @@
       $('#btnAddPlace').textContent='Ekle';
     };
 
-    // Export/Import/Clear
-    $('#btnExport').onclick=()=>{
-      const blob=new Blob([JSON.stringify(state.places,null,2)],{type:'application/json'});
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');
-      a.href=url;
-      a.download='places.json';
-      a.click();
-      URL.revokeObjectURL(url);
-    };
+    // Admin-only Import/Clear (moved from main toolbar)
     $('#fileImport').onchange=e=>{
       const f=e.target.files[0];
       if(!f) return;

@@ -228,6 +228,7 @@
       border-radius: var(--radius-full);
       font-size: 18px;
       transition: all 0.3s var(--ease-out);
+      position: relative;
     }
     
     .btn-icon:hover {
@@ -239,6 +240,31 @@
     
     .btn-icon:active {
       transform: scale(0.95);
+    }
+
+    /* YENİ: BİLDİRİM BADGE */
+    .notification-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: var(--accent-red);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: var(--radius-full);
+      min-width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5px;
+      box-shadow: 0 2px 8px rgba(255,59,92,.4);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
     }
 
     .input {
@@ -651,6 +677,62 @@
       width: 100%;
     }
 
+    /* YENİ: BİLDİRİM KARTLARI */
+    .notification-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.3s var(--ease-out);
+      position: relative;
+    }
+
+    .notification-item.unread {
+      background: var(--surface-elevated);
+      border-left: 3px solid var(--brand);
+    }
+
+    .notification-item:hover {
+      transform: translateX(4px);
+      border-color: var(--border-strong);
+    }
+
+    .notification-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .notification-title {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .notification-time {
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+
+    .notification-message {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .notification-unread-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--brand);
+      border-radius: 50%;
+      margin-left: 8px;
+      flex-shrink: 0;
+    }
+
     .admin-panel {
       position: fixed;
       bottom: 0;
@@ -787,7 +869,72 @@
       font-weight: 700;
       margin-bottom: 12px;
       color: var(--text-primary);
-      display: block;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .pharmacy-input-row {
+      background: var(--surface-elevated);
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 8px;
+      border: 1px solid var(--border);
+      position: relative;
+    }
+    
+    .pharmacy-input-row .input {
+      margin-bottom: 8px;
+    }
+    
+    .pharmacy-input-row .input:last-child {
+      margin-bottom: 0;
+    }
+    
+    .remove-pharmacy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--accent-red);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-full);
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 700;
+      transition: all 0.3s;
+    }
+    
+    .remove-pharmacy-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(255,59,92,.4);
+    }
+    
+    .add-pharmacy-btn {
+      width: 100%;
+      background: var(--surface-elevated);
+      border: 2px dashed var(--border);
+      color: var(--text-secondary);
+      padding: 12px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .add-pharmacy-btn:hover {
+      border-color: var(--brand);
+      color: var(--text-primary);
+      background: var(--surface-hover);
     }
 
     .toast {
@@ -915,6 +1062,11 @@
           <button class="btn-icon" onclick="toggleTheme()" title="Tema">
             <span id="theme-icon">🌙</span>
           </button>
+          <!-- YENİ: BİLDİRİM İKONU -->
+          <button class="btn-icon" onclick="showNotifications()" title="Bildirimler">
+            🔔
+            <span class="notification-badge" id="notification-badge" style="display: none;">0</span>
+          </button>
           <button class="btn-icon" onclick="showFavorites()" title="Favoriler">
             ❤️
           </button>
@@ -956,6 +1108,22 @@
       </div>
     </main>
 
+  </div>
+
+  <!-- YENİ: BİLDİRİMLER MODAL -->
+  <div class="modal" id="notifications-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">🔔 Bildirimler</h2>
+        <button class="btn-icon" onclick="closeNotificationsModal()">✕</button>
+      </div>
+      <div class="modal-body" id="notifications-body">
+        <div class="loading">
+          <div class="spinner"></div>
+          <div>Yükleniyor...</div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- DETAIL MODAL -->
@@ -1130,6 +1298,7 @@
         <button class="admin-tab active" onclick="switchAdminTab('places')">📍 Mekanlar</button>
         <button class="admin-tab" onclick="switchAdminTab('categories')">🏷️ Kategoriler</button>
         <button class="admin-tab" onclick="switchAdminTab('pharmacies')">🏥 Eczaneler</button>
+        <button class="admin-tab" onclick="switchAdminTab('notifications')">🔔 Bildirimler</button>
         <button class="admin-tab" onclick="switchAdminTab('support')">💬 Talepler</button>
         <button class="admin-tab" onclick="switchAdminTab('settings')">⚙️ Ayarlar</button>
       </div>
@@ -1274,55 +1443,8 @@
             <div class="form-note">Bu haftanın pazartesi gününü seçin</div>
           </div>
           
-          <div class="weekly-schedule">
-            <div class="day-input-group">
-              <label class="day-label">📅 PAZARTESİ</label>
-              <input type="text" id="pharmacy-monday-name" class="input" placeholder="Eczane adı" style="margin-bottom: 8px;">
-              <input type="text" id="pharmacy-monday-address" class="input" placeholder="Adres" style="margin-bottom: 8px;">
-              <input type="tel" id="pharmacy-monday-phone" class="input" placeholder="Telefon">
-            </div>
-            
-            <div class="day-input-group">
-              <label class="day-label">📅 SALI</label>
-              <input type="text" id="pharmacy-tuesday-name" class="input" placeholder="Eczane adı" style="margin-bottom: 8px;">
-              <input type="text" id="pharmacy-tuesday-address" class="input" placeholder="Adres" style="margin-bottom: 8px;">
-              <input type="tel" id="pharmacy-tuesday-phone" class="input" placeholder="Telefon">
-            </div>
-            
-            <div class="day-input-group">
-              <label class="day-label">📅 ÇARŞAMBA</label>
-              <input type="text" id="pharmacy-wednesday-name" class="input" placeholder="Eczane adı" style="margin-bottom: 8px;">
-              <input type="text" id="pharmacy-wednesday-address" class="input" placeholder="Adres" style="margin-bottom: 8px;">
-              <input type="tel" id="pharmacy-wednesday-phone" class="input" placeholder="Telefon">
-            </div>
-            
-            <div class="day-input-group">
-              <label class="day-label">📅 PERŞEMBE</label>
-              <input type="text" id="pharmacy-thursday-name" class="input" placeholder="Eczane adı" style="margin-bottom: 8px;">
-              <input type="text" id="pharmacy-thursday-address" class="input" placeholder="Adres" style="margin-bottom: 8px;">
-              <input type="tel" id="pharmacy-thursday-phone" class="input" placeholder="Telefon">
-            </div>
-            
-            <div class="day-input-group">
-              <label class="day-label">📅 CUMA</label>
-              <input type="text" id="pharmacy-friday-name" class="input" placeholder="Eczane adı" style="margin-bottom: 8px;">
-              <input type="text" id="pharmacy-friday-address" class="input" placeholder="Adres" style="margin-bottom: 8px;">
-              <input type="tel" id="pharmacy-friday-phone" class="input" placeholder="Telefon">
-            </div>
-            
-            <div class="day-input-group">
-              <label class="day-label">📅 CUMARTESİ</label>
-              <input type="text" id="pharmacy-saturday-name" class="input" placeholder="Eczane adı" style="margin-bottom: 8px;">
-              <input type="text" id="pharmacy-saturday-address" class="input" placeholder="Adres" style="margin-bottom: 8px;">
-              <input type="tel" id="pharmacy-saturday-phone" class="input" placeholder="Telefon">
-            </div>
-            
-            <div class="day-input-group">
-              <label class="day-label">📅 PAZAR</label>
-              <input type="text" id="pharmacy-sunday-name" class="input" placeholder="Eczane adı" style="margin-bottom: 8px;">
-              <input type="text" id="pharmacy-sunday-address" class="input" placeholder="Adres" style="margin-bottom: 8px;">
-              <input type="tel" id="pharmacy-sunday-phone" class="input" placeholder="Telefon">
-            </div>
+          <div class="weekly-schedule" id="pharmacy-weekly-schedule">
+            <!-- Her gün için dinamik olarak oluşturulacak -->
           </div>
           
           <button class="btn btn-primary" onclick="saveWeeklyPharmacies()" style="width: 100%; margin-top: 20px;">
@@ -1333,6 +1455,42 @@
         <div>
           <h3 style="margin-bottom: 16px; font-weight: 800; font-size: 18px;">📋 Eczane Haftaları</h3>
           <div id="admin-pharmacies-list"></div>
+        </div>
+      </div>
+
+      <!-- YENİ: BİLDİRİMLER TAB -->
+      <div class="admin-tab-content" id="admin-notifications-tab">
+        <div style="background: var(--surface); padding: 20px; border-radius: var(--radius-lg); margin-bottom: 24px; border: 1px solid var(--border);">
+          <h3 style="margin-bottom: 20px; font-weight: 800; font-size: 18px;">🔔 Yeni Bildirim Gönder</h3>
+          
+          <div class="form-group">
+            <label class="form-label">BAŞLIK *</label>
+            <input type="text" id="notification-title" class="input" placeholder="Örn: Yeni mekan eklendi!">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">MESAJ *</label>
+            <textarea id="notification-message" class="input" rows="4" placeholder="Bildirim mesajını yazın..."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">TİP</label>
+            <select id="notification-type" class="input">
+              <option value="info">ℹ️ Bilgi</option>
+              <option value="success">✅ Başarı</option>
+              <option value="warning">⚠️ Uyarı</option>
+              <option value="error">❌ Hata</option>
+            </select>
+          </div>
+          
+          <button class="btn btn-primary" onclick="sendNotification()" style="width: 100%;">
+            📤 Gönder
+          </button>
+        </div>
+        
+        <div>
+          <h3 style="margin-bottom: 16px; font-weight: 800; font-size: 18px;">📋 Gönderilen Bildirimler</h3>
+          <div id="admin-notifications-list"></div>
         </div>
       </div>
       
@@ -1447,6 +1605,21 @@
     let logoClickTimer = null;
     let currentAdminTab = 'places';
     
+    // YENİ: Bildirim değişkenleri
+    let allNotifications = [];
+    let unreadCount = 0;
+    
+    // Pharmacy counters
+    let pharmacyCounts = {
+      monday: 1,
+      tuesday: 1,
+      wednesday: 1,
+      thursday: 1,
+      friday: 1,
+      saturday: 1,
+      sunday: 1
+    };
+    
     let categories = [
       { id: 'all', name: 'Tümü', icon: '🌟' },
       { id: 'cafe', name: 'Cafe', icon: '☕' },
@@ -1504,7 +1677,169 @@
       loadFavorites();
       populateDistrictSelect();
       await loadPlaces();
+      await loadNotifications(); // YENİ
       console.log('✅ LemmOn hazır!');
+    }
+    
+    // YENİ: Bildirim Fonksiyonları
+    async function loadNotifications() {
+      try {
+        const snapshot = await db.collection('notifications')
+          .orderBy('createdAt', 'desc')
+          .get();
+        
+        allNotifications = [];
+        snapshot.forEach(doc => {
+          allNotifications.push({ id: doc.id, ...doc.data() });
+        });
+        
+        updateNotificationBadge();
+        console.log(`🔔 ${allNotifications.length} bildirim yüklendi`);
+      } catch (error) {
+        console.error('Bildirim yükleme hatası:', error);
+      }
+    }
+
+    function updateNotificationBadge() {
+      const readNotifications = JSON.parse(localStorage.getItem('readNotifications') || '[]');
+      unreadCount = allNotifications.filter(n => !readNotifications.includes(n.id)).length;
+      
+      const badge = document.getElementById('notification-badge');
+      if (unreadCount > 0) {
+        badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    async function showNotifications() {
+      const modal = document.getElementById('notifications-modal');
+      const body = document.getElementById('notifications-body');
+      modal.classList.add('active');
+      
+      if (allNotifications.length === 0) {
+        body.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔔</div><div class="empty-state-text">Henüz bildirim yok</div></div>';
+        return;
+      }
+      
+      const readNotifications = JSON.parse(localStorage.getItem('readNotifications') || '[]');
+      body.innerHTML = '';
+      
+      allNotifications.forEach(notif => {
+        const isRead = readNotifications.includes(notif.id);
+        const item = document.createElement('div');
+        item.className = 'notification-item' + (isRead ? '' : ' unread');
+        item.onclick = () => markAsRead(notif.id);
+        
+        const time = notif.createdAt ? new Date(notif.createdAt.seconds * 1000).toLocaleString('tr-TR') : 'Tarih yok';
+        const typeIcon = {
+          info: 'ℹ️',
+          success: '✅',
+          warning: '⚠️',
+          error: '❌'
+        }[notif.type || 'info'];
+        
+        item.innerHTML = `
+          <div class="notification-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 20px;">${typeIcon}</span>
+              <div>
+                <div class="notification-title">${escapeHtml(notif.title)}</div>
+                <div class="notification-time">${time}</div>
+              </div>
+            </div>
+            ${!isRead ? '<div class="notification-unread-dot"></div>' : ''}
+          </div>
+          <div class="notification-message">${escapeHtml(notif.message)}</div>
+        `;
+        body.appendChild(item);
+      });
+    }
+
+    function markAsRead(notificationId) {
+      const readNotifications = JSON.parse(localStorage.getItem('readNotifications') || '[]');
+      if (!readNotifications.includes(notificationId)) {
+        readNotifications.push(notificationId);
+        localStorage.setItem('readNotifications', JSON.stringify(readNotifications));
+        updateNotificationBadge();
+        showNotifications(); // Refresh
+      }
+    }
+
+    function closeNotificationsModal() {
+      document.getElementById('notifications-modal').classList.remove('active');
+    }
+
+    // YENİ: Admin - Bildirim Gönderme
+    async function sendNotification() {
+      const title = document.getElementById('notification-title').value.trim();
+      const message = document.getElementById('notification-message').value.trim();
+      const type = document.getElementById('notification-type').value;
+      
+      if (!title) { showToast('Başlık gerekli!', 'error'); return; }
+      if (!message) { showToast('Mesaj gerekli!', 'error'); return; }
+      
+      try {
+        await db.collection('notifications').add({
+          title,
+          message,
+          type,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        showToast('Bildirim gönderildi!', 'success');
+        
+        document.getElementById('notification-title').value = '';
+        document.getElementById('notification-message').value = '';
+        document.getElementById('notification-type').value = 'info';
+        
+        await loadNotifications();
+        loadAdminNotificationsList();
+      } catch (error) {
+        console.error('Hata:', error);
+        showToast('Gönderilemedi!', 'error');
+      }
+    }
+
+    async function loadAdminNotificationsList() {
+      const container = document.getElementById('admin-notifications-list');
+      
+      if (allNotifications.length === 0) {
+        container.innerHTML = '<div class="empty-state-text">Henüz bildirim yok</div>';
+        return;
+      }
+      
+      container.innerHTML = '';
+      allNotifications.forEach(notif => {
+        const item = document.createElement('div');
+        item.className = 'admin-list-item';
+        const time = notif.createdAt ? new Date(notif.createdAt.seconds * 1000).toLocaleString('tr-TR') : 'Tarih yok';
+        item.innerHTML = `
+          <div>
+            <div style="font-weight: 700; margin-bottom: 6px; font-size: 15px;">${escapeHtml(notif.title)}</div>
+            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">${escapeHtml(notif.message)}</div>
+            <div style="font-size: 12px; color: var(--text-tertiary);">${time}</div>
+          </div>
+          <div class="admin-item-actions">
+            <button class="btn btn-secondary" onclick="deleteNotification('${notif.id}')" style="padding: 8px 14px; font-size: 13px;">🗑️</button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    async function deleteNotification(id) {
+      if (!confirm('Bu bildirimi silmek istediğinizden emin misiniz?')) return;
+      try {
+        await db.collection('notifications').doc(id).delete();
+        showToast('Bildirim silindi!', 'success');
+        await loadNotifications();
+        loadAdminNotificationsList();
+      } catch (error) {
+        console.error('Hata:', error);
+        showToast('Silinemedi!', 'error');
+      }
     }
     
     // Theme
@@ -1527,7 +1862,7 @@
       document.getElementById('theme-icon').textContent = theme === 'dark' ? '🌙' : '☀️';
     }
     
-    // Categories - Firebase'den yükleme
+    // Categories
     async function loadCategoriesFromFirebase() {
       try {
         const snapshot = await db.collection('categories').get();
@@ -1568,7 +1903,6 @@
       filterPlaces();
     }
     
-    // Yeni kategori ekleme
     async function addNewCategory() {
       const name = document.getElementById('new-category-name').value.trim();
       const icon = document.getElementById('new-category-icon').value.trim();
@@ -1578,7 +1912,6 @@
       if (!icon) { showToast('İkon gerekli!', 'error'); return; }
       if (!id) { showToast('Kategori ID gerekli!', 'error'); return; }
       
-      // ID kontrolü
       if (categories.find(c => c.id === id)) {
         showToast('Bu ID zaten kullanılıyor!', 'error');
         return;
@@ -1588,12 +1921,10 @@
         await db.collection('categories').add({ id, name, icon });
         showToast('Kategori eklendi!', 'success');
         
-        // Form temizle
         document.getElementById('new-category-name').value = '';
         document.getElementById('new-category-icon').value = '';
         document.getElementById('new-category-id').value = '';
         
-        // Kategorileri yeniden yükle
         await loadCategoriesFromFirebase();
         loadAdminCategoriesList();
       } catch (error) {
@@ -1602,10 +1933,8 @@
       }
     }
     
-    // Admin kategoriler listesi
     function loadAdminCategoriesList() {
       const container = document.getElementById('admin-categories-list');
-      // "Tümü" kategorisini hariç tut
       const userCategories = categories.filter(c => c.id !== 'all');
       
       if (userCategories.length === 0) {
@@ -1630,18 +1959,15 @@
       });
     }
     
-    // Kategori silme
     async function deleteCategory(categoryId) {
       if (!confirm('Bu kategoriyi silmek istediğinizden emin misiniz?')) return;
       
       try {
-        // Firebase'den sil
         const snapshot = await db.collection('categories').where('id', '==', categoryId).get();
         snapshot.forEach(doc => doc.ref.delete());
         
         showToast('Kategori silindi!', 'success');
         
-        // Kategorileri yeniden yükle
         await loadCategoriesFromFirebase();
         loadAdminCategoriesList();
       } catch (error) {
@@ -1750,22 +2076,18 @@
     function filterPlaces() {
       filteredPlaces = [...allPlaces];
       
-      // Category filter
       if (currentCategory !== 'all') {
         filteredPlaces = filteredPlaces.filter(p => p.category === currentCategory);
       }
       
-      // District filter
       if (currentDistrict !== 'all') {
         filteredPlaces = filteredPlaces.filter(p => p.district === currentDistrict);
       }
       
-      // Price filter
       if (currentPrice !== 'all') {
         filteredPlaces = filteredPlaces.filter(p => p.priceRange === currentPrice);
       }
       
-      // Search filter
       const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
       if (searchTerm) {
         filteredPlaces = filteredPlaces.filter(p => 
@@ -1908,7 +2230,7 @@
         showPlaceDetail(currentDetailPlace);
       }
     }
-    
+
     function openInMaps() {
       if (currentDetailPlace && currentDetailPlace.latitude && currentDetailPlace.longitude) {
         window.open(`https://www.google.com/maps?q=${currentDetailPlace.latitude},${currentDetailPlace.longitude}`, '_blank');
@@ -1998,7 +2320,6 @@
       const modal = document.getElementById('about-modal');
       const body = document.getElementById('about-modal-body');
       
-      // Firebase'den çek
       const aboutData = await loadAboutDataForDisplay();
       
       body.innerHTML = `
@@ -2032,7 +2353,6 @@
         console.error('Hata:', error);
       }
       
-      // Default değerler
       return {
         title: 'LemmOn Mersin',
         subtitle: 'Mersin Şehir Rehberi',
@@ -2057,26 +2377,35 @@
         }
         
         const weekData = snapshot.docs[0].data();
-        const today = new Date().getDay(); // 0=Pazar, 1=Pazartesi
+        const today = new Date().getDay();
         const dayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
         const todayKey = dayKeys[today];
         
         body.innerHTML = '<h3 style="margin-bottom: 20px; font-weight: 800;">Bu Hafta</h3>';
         
-        dayKeys.forEach((key, index) => {
+        dayKeys.forEach((key) => {
           const dayData = weekData[key];
-          if (dayData && dayData.name) {
+          if (dayData && Array.isArray(dayData) && dayData.length > 0) {
             const isToday = key === todayKey;
-            const card = document.createElement('div');
-            card.className = 'place-card pharmacy-card';
-            card.style.cursor = 'default';
-            card.innerHTML = `
-              <div class="place-name" style="${isToday ? 'color: var(--accent-green);' : ''}">${escapeHtml(dayData.name)}</div>
-              <div class="pharmacy-day">${dayNames[key]}</div>
-              ${dayData.address ? `<div class="place-address">📍 ${escapeHtml(dayData.address)}</div>` : ''}
-              ${dayData.phone ? `<div style="margin-top: 8px; color: var(--text-secondary);">📞 ${escapeHtml(dayData.phone)}</div>` : ''}
-            `;
-            body.appendChild(card);
+            
+            const dayHeader = document.createElement('h4');
+            dayHeader.style.cssText = 'margin: 24px 0 12px; font-weight: 700; font-size: 16px;' + (isToday ? ' color: var(--accent-green);' : '');
+            dayHeader.innerHTML = `${dayNames[key]} ${isToday ? '(Bugün)' : ''}`;
+            body.appendChild(dayHeader);
+            
+            dayData.forEach(pharmacy => {
+              if (pharmacy.name) {
+                const card = document.createElement('div');
+                card.className = 'place-card' + (isToday ? ' pharmacy-card' : '');
+                card.style.cursor = 'default';
+                card.innerHTML = `
+                  <div class="place-name" style="${isToday ? 'color: var(--accent-green);' : ''}">${escapeHtml(pharmacy.name)}</div>
+                  ${pharmacy.address ? `<div class="place-address">📍 ${escapeHtml(pharmacy.address)}</div>` : ''}
+                  ${pharmacy.phone ? `<div style="margin-top: 8px; color: var(--text-secondary);">📞 ${escapeHtml(pharmacy.phone)}</div>` : ''}
+                `;
+                body.appendChild(card);
+              }
+            });
           }
         });
         
@@ -2129,7 +2458,6 @@
         showToast('Talebiniz gönderildi!', 'success');
         closeSupportModal();
         
-        // Clear form
         document.getElementById('support-name').value = '';
         document.getElementById('support-email').value = '';
         document.getElementById('support-subject').value = '';
@@ -2176,23 +2504,24 @@
     function switchAdminTab(tab) {
       currentAdminTab = tab;
       
-      // Update tabs
       document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.admin-tab-content').forEach(t => t.classList.remove('active'));
       
       const tabButtons = document.querySelectorAll('.admin-tab');
-      const tabMap = { 'places': 0, 'categories': 1, 'pharmacies': 2, 'support': 3, 'settings': 4 };
+      const tabMap = { 'places': 0, 'categories': 1, 'pharmacies': 2, 'notifications': 3, 'support': 4, 'settings': 5 };
       tabButtons[tabMap[tab]].classList.add('active');
       
       document.getElementById(`admin-${tab}-tab`).classList.add('active');
       
-      // Load data
       if (tab === 'places') {
         loadAdminPlacesList();
       } else if (tab === 'categories') {
         loadAdminCategoriesList();
       } else if (tab === 'pharmacies') {
+        initPharmacyWeeklySchedule();
         loadAdminPharmaciesList();
+      } else if (tab === 'notifications') {
+        loadAdminNotificationsList();
       } else if (tab === 'support') {
         loadAdminSupportList();
       } else if (tab === 'settings') {
@@ -2218,120 +2547,12 @@
           </div>
           <div class="admin-item-actions">
             <button class="btn btn-secondary" onclick="editPlace('${place.id}')" style="padding: 8px 14px; font-size: 13px;">✏️</button>
-            <button class="btn btn-secondary" onclick="deletePlace('${place.id}')" style="padding: 8px 14px; font-size: 13px;">🗑️</button>
+            <button class="btn btn-secondary" onclick="deletePlace('${place.id}')" style="padding: 8px 14px; font
+                        <button class="btn btn-secondary" onclick="deletePlace('${place.id}')" style="padding: 8px 14px; font-size: 13px;">🗑️</button>
           </div>
         `;
         container.appendChild(item);
       });
-    }
-    
-    async function loadAdminPharmaciesList() {
-      const container = document.getElementById('admin-pharmacies-list');
-      try {
-        const snapshot = await db.collection('pharmacies').orderBy('weekStart', 'desc').get();
-        if (snapshot.empty) {
-          container.innerHTML = '<div class="empty-state-text">Henüz hafta eklenmemiş</div>';
-          return;
-        }
-        container.innerHTML = '';
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          const item = document.createElement('div');
-          item.className = 'admin-list-item';
-          item.innerHTML = `
-            <div>
-              <div style="font-weight: 700; margin-bottom: 6px;">🏥 Hafta: ${data.weekStart}</div>
-              <div style="font-size: 13px; color: var(--text-secondary);">7 eczane kaydı</div>
-            </div>
-            <div class="admin-item-actions">
-              <button class="btn btn-secondary" onclick="deletePharmacyWeek('${doc.id}')" style="padding: 8px 14px; font-size: 13px;">🗑️</button>
-            </div>
-          `;
-          container.appendChild(item);
-        });
-      } catch (error) {
-        console.error('Hata:', error);
-        container.innerHTML = '<div class="empty-state-text">Yüklenemedi</div>';
-      }
-    }
-    
-    async function loadAdminSupportList() {
-      const container = document.getElementById('admin-support-list');
-      try {
-        const snapshot = await db.collection('support').orderBy('createdAt', 'desc').get();
-        if (snapshot.empty) {
-          container.innerHTML = '<div class="empty-state-text">Henüz talep yok</div>';
-          return;
-        }
-        container.innerHTML = '';
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          const item = document.createElement('div');
-          item.className = 'admin-list-item';
-          item.style.display = 'block';
-          item.innerHTML = `
-            <div style="margin-bottom: 12px;">
-              <div style="font-weight: 700; margin-bottom: 6px;">${escapeHtml(data.name)}</div>
-              <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">📧 ${escapeHtml(data.email)}</div>
-              <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">📌 ${escapeHtml(data.subject)}</div>
-              <div style="font-size: 14px; margin-top: 8px;">${escapeHtml(data.message)}</div>
-            </div>
-            <div style="display: flex; gap: 8px; justify-content: flex-end;">
-              <button class="btn btn-secondary" onclick="deleteSupportTicket('${doc.id}')" style="padding: 6px 12px; font-size: 13px;">🗑️ Sil</button>
-            </div>
-          `;
-          container.appendChild(item);
-        });
-      } catch (error) {
-        console.error('Hata:', error);
-        container.innerHTML = '<div class="empty-state-text">Yüklenemedi</div>';
-      }
-    }
-    
-    async function loadAboutData() {
-      try {
-        const doc = await db.collection('settings').doc('about').get();
-        if (doc.exists) {
-          const data = doc.data();
-          document.getElementById('about-title').value = data.title || 'LemmOn Mersin';
-          document.getElementById('about-subtitle').value = data.subtitle || 'Mersin Şehir Rehberi';
-          document.getElementById('about-description').value = data.description || '';
-          document.getElementById('about-version').value = data.version || 'V2.0 • 2025';
-        } else {
-          // Set defaults
-          document.getElementById('about-title').value = 'LemmOn Mersin';
-          document.getElementById('about-subtitle').value = 'Mersin Şehir Rehberi';
-          document.getElementById('about-description').value = 'Mersin\'deki en iyi mekanları keşfet! Cafeler, restoranlar, alışveriş merkezleri ve daha fazlası...';
-          document.getElementById('about-version').value = 'V2.0 • 2025';
-        }
-      } catch (error) {
-        console.error('Hakkımda yüklenemedi:', error);
-      }
-    }
-    
-    async function saveAboutData() {
-      const title = document.getElementById('about-title').value.trim();
-      const subtitle = document.getElementById('about-subtitle').value.trim();
-      const description = document.getElementById('about-description').value.trim();
-      const version = document.getElementById('about-version').value.trim();
-      
-      if (!title) { showToast('Başlık gerekli!', 'error'); return; }
-      if (!subtitle) { showToast('Alt başlık gerekli!', 'error'); return; }
-      if (!description) { showToast('Açıklama gerekli!', 'error'); return; }
-      
-      try {
-        await db.collection('settings').doc('about').set({
-          title,
-          subtitle,
-          description,
-          version,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        showToast('Hakkımda güncellendi!', 'success');
-      } catch (error) {
-        console.error('Hata:', error);
-        showToast('Kaydedilemedi!', 'error');
-      }
     }
     
     function resetPlaceForm() {
@@ -2349,9 +2570,10 @@
       document.getElementById('place-description').value = '';
     }
     
-    function editPlace(placeId) {
+    async function editPlace(placeId) {
       const place = allPlaces.find(p => p.id === placeId);
       if (!place) return;
+      
       document.getElementById('edit-place-id').value = place.id;
       document.getElementById('place-name').value = place.name || '';
       document.getElementById('place-category').value = place.category || '';
@@ -2364,12 +2586,14 @@
       document.getElementById('place-open').value = place.openTime || '09:00';
       document.getElementById('place-close').value = place.closeTime || '22:00';
       document.getElementById('place-description').value = place.description || '';
+      
       document.getElementById('place-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
-      showToast('Düzenleme modunda', 'success');
+      showToast('Düzenleme moduna geçildi', 'success');
     }
     
     async function deletePlace(placeId) {
       if (!confirm('Bu mekanı silmek istediğinizden emin misiniz?')) return;
+      
       try {
         await db.collection('places').doc(placeId).delete();
         showToast('Mekan silindi!', 'success');
@@ -2382,41 +2606,50 @@
     }
     
     async function savePlaceData() {
-      const placeId = document.getElementById('edit-place-id').value;
       const name = document.getElementById('place-name').value.trim();
       const category = document.getElementById('place-category').value;
       const district = document.getElementById('place-district').value;
       const priceRange = document.getElementById('place-price').value;
       const address = document.getElementById('place-address').value.trim();
       const phone = document.getElementById('place-phone').value.trim();
-      const lat = document.getElementById('place-lat').value;
-      const lng = document.getElementById('place-lng').value;
+      const latitude = parseFloat(document.getElementById('place-lat').value);
+      const longitude = parseFloat(document.getElementById('place-lng').value);
       const openTime = document.getElementById('place-open').value;
       const closeTime = document.getElementById('place-close').value;
       const description = document.getElementById('place-description').value.trim();
       
       if (!name) { showToast('Mekan adı gerekli!', 'error'); return; }
-      if (!category) { showToast('Kategori seçiniz!', 'error'); return; }
-      if (!district) { showToast('İlçe seçiniz!', 'error'); return; }
+      if (!category) { showToast('Kategori seçin!', 'error'); return; }
+      if (!district) { showToast('İlçe seçin!', 'error'); return; }
       if (!address) { showToast('Adres gerekli!', 'error'); return; }
       
       const placeData = {
-        name, category, district, priceRange, address, phone,
-        latitude: lat ? parseFloat(lat) : null,
-        longitude: lng ? parseFloat(lng) : null,
-        openTime, closeTime, description,
+        name,
+        category,
+        district,
+        priceRange: priceRange || null,
+        address,
+        phone: phone || null,
+        latitude: latitude || null,
+        longitude: longitude || null,
+        openTime: openTime || null,
+        closeTime: closeTime || null,
+        description: description || null,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       };
       
+      const editId = document.getElementById('edit-place-id').value;
+      
       try {
-        if (placeId) {
-          await db.collection('places').doc(placeId).update(placeData);
-          showToast('Güncellendi!', 'success');
+        if (editId) {
+          await db.collection('places').doc(editId).update(placeData);
+          showToast('Mekan güncellendi!', 'success');
         } else {
           placeData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
           await db.collection('places').add(placeData);
-          showToast('Eklendi!', 'success');
+          showToast('Mekan eklendi!', 'success');
         }
+        
         resetPlaceForm();
         await loadPlaces();
         loadAdminPlacesList();
@@ -2426,46 +2659,87 @@
       }
     }
     
+    // Pharmacy Schedule
+    function initPharmacyWeeklySchedule() {
+      const container = document.getElementById('pharmacy-weekly-schedule');
+      container.innerHTML = '';
+      
+      const dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+      
+      dayKeys.forEach(day => {
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'day-input-group';
+        dayDiv.innerHTML = `
+          <div class="day-label">
+            ${dayNames[day]}
+            <button class="btn btn-secondary" onclick="addPharmacyInput('${day}')" style="padding: 6px 12px; font-size: 12px;">➕ Eczane Ekle</button>
+          </div>
+          <div id="pharmacy-inputs-${day}"></div>
+        `;
+        container.appendChild(dayDiv);
+        
+        addPharmacyInput(day);
+      });
+    }
+    
+    function addPharmacyInput(day) {
+      const container = document.getElementById(`pharmacy-inputs-${day}`);
+      const index = pharmacyCounts[day]++;
+      
+      const inputRow = document.createElement('div');
+      inputRow.className = 'pharmacy-input-row';
+      inputRow.id = `pharmacy-row-${day}-${index}`;
+      inputRow.innerHTML = `
+        <button class="remove-pharmacy-btn" onclick="removePharmacyInput('${day}', ${index})">✕</button>
+        <input type="text" class="input" placeholder="Eczane Adı" id="pharmacy-name-${day}-${index}">
+        <input type="text" class="input" placeholder="Adres" id="pharmacy-address-${day}-${index}">
+        <input type="tel" class="input" placeholder="Telefon" id="pharmacy-phone-${day}-${index}">
+      `;
+      container.appendChild(inputRow);
+    }
+    
+    function removePharmacyInput(day, index) {
+      const row = document.getElementById(`pharmacy-row-${day}-${index}`);
+      if (row) row.remove();
+    }
+    
     async function saveWeeklyPharmacies() {
       const weekStart = document.getElementById('pharmacy-week-start').value;
       if (!weekStart) {
-        showToast('Hafta başlangıç tarihi seçiniz!', 'error');
+        showToast('Hafta başlangıç tarihi gerekli!', 'error');
         return;
       }
       
-      const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
       const weekData = { weekStart };
+      const dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
       
-      let hasData = false;
-      days.forEach(day => {
-        const name = document.getElementById(`pharmacy-${day}-name`).value.trim();
-        const address = document.getElementById(`pharmacy-${day}-address`).value.trim();
-        const phone = document.getElementById(`pharmacy-${day}-phone`).value.trim();
+      dayKeys.forEach(day => {
+        const pharmacies = [];
+        const container = document.getElementById(`pharmacy-inputs-${day}`);
+        const rows = container.querySelectorAll('.pharmacy-input-row');
         
-        if (name) {
-          hasData = true;
-          weekData[day] = { name, address, phone };
-        }
-      });
-      
-      if (!hasData) {
-        showToast('En az bir eczane bilgisi girin!', 'error');
-        return;
-      }
-      
-      try {
-        weekData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-        await db.collection('pharmacies').add(weekData);
-        showToast('Haftalık eczaneler kaydedildi!', 'success');
-        
-        // Clear form
-        document.getElementById('pharmacy-week-start').value = '';
-        days.forEach(day => {
-          document.getElementById(`pharmacy-${day}-name`).value = '';
-          document.getElementById(`pharmacy-${day}-address`).value = '';
-          document.getElementById(`pharmacy-${day}-phone`).value = '';
+        rows.forEach(row => {
+          const id = row.id.split('-').pop();
+          const name = document.getElementById(`pharmacy-name-${day}-${id}`)?.value.trim();
+          const address = document.getElementById(`pharmacy-address-${day}-${id}`)?.value.trim();
+          const phone = document.getElementById(`pharmacy-phone-${day}-${id}`)?.value.trim();
+          
+          if (name) {
+            pharmacies.push({ name, address: address || null, phone: phone || null });
+          }
         });
         
+        weekData[day] = pharmacies;
+      });
+      
+      try {
+        await db.collection('pharmacies').add({
+          ...weekData,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        showToast('Haftalık eczaneler kaydedildi!', 'success');
+        initPharmacyWeeklySchedule();
         loadAdminPharmaciesList();
       } catch (error) {
         console.error('Hata:', error);
@@ -2473,10 +2747,44 @@
       }
     }
     
-    async function deletePharmacyWeek(id) {
-      if (!confirm('Bu haftayı silmek istediğinizden emin misiniz?')) return;
+    async function loadAdminPharmaciesList() {
+      const container = document.getElementById('admin-pharmacies-list');
+      
       try {
-        await db.collection('pharmacies').doc(id).delete();
+        const snapshot = await db.collection('pharmacies').orderBy('weekStart', 'desc').get();
+        
+        if (snapshot.empty) {
+          container.innerHTML = '<div class="empty-state-text">Henüz hafta eklenmemiş</div>';
+          return;
+        }
+        
+        container.innerHTML = '';
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const item = document.createElement('div');
+          item.className = 'admin-list-item';
+          item.innerHTML = `
+            <div>
+              <div style="font-weight: 700; margin-bottom: 6px; font-size: 15px;">📅 ${data.weekStart}</div>
+              <div style="font-size: 13px; color: var(--text-secondary);">Haftalık nöbetçi eczaneler</div>
+            </div>
+            <div class="admin-item-actions">
+              <button class="btn btn-secondary" onclick="deletePharmacyWeek('${doc.id}')" style="padding: 8px 14px; font-size: 13px;">🗑️</button>
+            </div>
+          `;
+          container.appendChild(item);
+        });
+      } catch (error) {
+        console.error('Hata:', error);
+        container.innerHTML = '<div class="empty-state-text">Yükleme hatası</div>';
+      }
+    }
+    
+    async function deletePharmacyWeek(weekId) {
+      if (!confirm('Bu haftayı silmek istediğinizden emin misiniz?')) return;
+      
+      try {
+        await db.collection('pharmacies').doc(weekId).delete();
         showToast('Hafta silindi!', 'success');
         loadAdminPharmaciesList();
       } catch (error) {
@@ -2485,8 +2793,60 @@
       }
     }
     
-    async function deleteSupportTicket(id) {
+    // Support List
+    async function loadAdminSupportList() {
+      const container = document.getElementById('admin-support-list');
+      
+      try {
+        const snapshot = await db.collection('support').orderBy('createdAt', 'desc').get();
+        
+        if (snapshot.empty) {
+          container.innerHTML = '<div class="empty-state-text">Henüz talep yok</div>';
+          return;
+        }
+        
+        container.innerHTML = '';
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const item = document.createElement('div');
+          item.className = 'admin-list-item';
+          const statusIcon = data.status === 'pending' ? '🟡' : '✅';
+          item.innerHTML = `
+            <div>
+              <div style="font-weight: 700; margin-bottom: 6px; font-size: 15px;">${statusIcon} ${escapeHtml(data.subject)}</div>
+              <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">${escapeHtml(data.name)} • ${escapeHtml(data.email)}</div>
+              <div style="font-size: 13px; color: var(--text-tertiary);">${escapeHtml(data.message)}</div>
+            </div>
+            <div class="admin-item-actions">
+              <button class="btn btn-secondary" onclick="toggleSupportStatus('${doc.id}', '${data.status}')" style="padding: 8px 14px; font-size: 13px;">
+                ${data.status === 'pending' ? '✓' : '↻'}
+              </button>
+              <button class="btn btn-secondary" onclick="deleteSupportRequest('${doc.id}')" style="padding: 8px 14px; font-size: 13px;">🗑️</button>
+            </div>
+          `;
+          container.appendChild(item);
+        });
+      } catch (error) {
+        console.error('Hata:', error);
+        container.innerHTML = '<div class="empty-state-text">Yükleme hatası</div>';
+      }
+    }
+    
+    async function toggleSupportStatus(id, currentStatus) {
+      const newStatus = currentStatus === 'pending' ? 'resolved' : 'pending';
+      try {
+        await db.collection('support').doc(id).update({ status: newStatus });
+        showToast('Durum güncellendi!', 'success');
+        loadAdminSupportList();
+      } catch (error) {
+        console.error('Hata:', error);
+        showToast('Güncellenemedi!', 'error');
+      }
+    }
+    
+    async function deleteSupportRequest(id) {
       if (!confirm('Bu talebi silmek istediğinizden emin misiniz?')) return;
+      
       try {
         await db.collection('support').doc(id).delete();
         showToast('Talep silindi!', 'success');
@@ -2497,80 +2857,159 @@
       }
     }
     
+    // About Settings
+    async function loadAboutData() {
+      try {
+        const doc = await db.collection('settings').doc('about').get();
+        if (doc.exists) {
+          const data = doc.data();
+          document.getElementById('about-title').value = data.title || '';
+          document.getElementById('about-subtitle').value = data.subtitle || '';
+          document.getElementById('about-description').value = data.description || '';
+          document.getElementById('about-version').value = data.version || '';
+        }
+      } catch (error) {
+        console.error('Hata:', error);
+      }
+    }
+    
+    async function saveAboutData() {
+      const title = document.getElementById('about-title').value.trim();
+      const subtitle = document.getElementById('about-subtitle').value.trim();
+      const description = document.getElementById('about-description').value.trim();
+      const version = document.getElementById('about-version').value.trim();
+      
+      if (!title) { showToast('Başlık gerekli!', 'error'); return; }
+      
+      try {
+        await db.collection('settings').doc('about').set({
+          title,
+          subtitle,
+          description,
+          version
+        });
+        
+        showToast('Hakkımda güncellendi!', 'success');
+      } catch (error) {
+        console.error('Hata:', error);
+        showToast('Kaydedilemedi!', 'error');
+      }
+    }
+    
     // Backup
-    function exportBackup() {
-      const backup = {
-        places: allPlaces,
-        favorites: favorites,
-        exportDate: new Date().toISOString(),
-        version: '2.0'
-      };
-      const dataStr = JSON.stringify(backup, null, 2);
-      const blob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `lemmon-yedek-${new Date().getTime()}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast('Yedek alındı!', 'success');
+    async function exportBackup() {
+      try {
+        const placesSnapshot = await db.collection('places').get();
+        const places = [];
+        placesSnapshot.forEach(doc => places.push({ id: doc.id, ...doc.data() }));
+        
+        const backup = {
+          places,
+          favorites,
+          exportDate: new Date().toISOString()
+        };
+        
+        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `lemmon-backup-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        showToast('Yedek alındı!', 'success');
+      } catch (error) {
+        console.error('Hata:', error);
+        showToast('Yedek alınamadı!', 'error');
+      }
     }
     
     function importBackup() {
       const input = document.createElement('input');
       input.type = 'file';
-      input.accept = '.json';
+      input.accept = 'application/json';
       input.onchange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        try {
-          const text = await file.text();
-          const backup = JSON.parse(text);
-          if (!backup.places || !Array.isArray(backup.places)) {
-            throw new Error('Geçersiz yedek');
-          }
-          if (confirm(`${backup.places.length} mekan geri yüklenecek. Onaylıyor musunuz?`)) {
-            // Firebase'e yükle
-            for (const place of backup.places) {
-              const { id, ...placeData } = place;
-              await db.collection('places').add(placeData);
-            }
+        
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          try {
+            const backup = JSON.parse(event.target.result);
             
             if (backup.favorites) {
-              favorites = backup.favorites;
-              saveFavoritesToStorage();
+              localStorage.setItem('favorites', JSON.stringify(backup.favorites));
+              loadFavorites();
             }
             
-            showToast('Yedek yüklendi!', 'success');
-            await loadPlaces();
+            if (backup.places && Array.isArray(backup.places)) {
+              if (confirm(`${backup.places.length} mekan yüklenecek. Devam?`)) {
+                for (const place of backup.places) {
+                  const placeData = { ...place };
+                  delete placeData.id;
+                  await db.collection('places').add(placeData);
+                }
+                await loadPlaces();
+                showToast('Yedek yüklendi!', 'success');
+              }
+            }
+          } catch (error) {
+            console.error('Hata:', error);
+            showToast('Yedek yüklenemedi!', 'error');
           }
-        } catch (error) {
-          console.error('Hata:', error);
-          showToast('Yedek yüklenemedi!', 'error');
-        }
+        };
+        reader.readAsText(file);
       };
       input.click();
     }
     
-    // Utility Functions
+    // Helpers
     function getPlaceStatus(place) {
       if (!place.openTime || !place.closeTime) return null;
       
       const now = new Date();
-      const currentHours = now.getHours();
-      const currentMinutes = now.getMinutes();
-      const currentTime = currentHours * 60 + currentMinutes;
-      
       const [openH, openM] = place.openTime.split(':').map(Number);
       const [closeH, closeM] = place.closeTime.split(':').map(Number);
-      const openTime = openH * 60 + openM;
-      const closeTime = closeH * 60 + closeM;
       
-      const isOpen = currentTime >= openTime && currentTime < closeTime;
+      const openTime = new Date();
+      openTime.setHours(openH, openM, 0);
       
-      return isOpen 
-        ? { class: 'open', icon: '🟢', text: 'Açık' }
-        : { class: 'closed', icon: '🔴', text: 'Kapalı' };
+      const closeTime = new Date();
+      closeTime.setHours(closeH, closeM, 0);
+      
+      if (now >= openTime && now <= closeTime) {
+        return { class: 'open', icon: '✅', text: 'Açık' };
+      } else {
+        return { class: 'closed', icon: '🔴', text: 'Kapalı' };
+      }
+    }
+    
+    function showEmptyState(text) {
+      document.getElementById('main-content').innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">🍋</div>
+          <div class="empty-state-text">${text}</div>
+        </div>
+      `;
+    }
+    
+    function showToast(message, type = 'info') {
+      let toast = document.querySelector('.toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.className = 'toast';
+        document.body.appendChild(toast);
+      }
+      
+      toast.textContent = message;
+      toast.className = 'toast';
+      if (type) toast.classList.add(type);
+      
+      setTimeout(() => toast.classList.add('show'), 10);
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
     }
     
     function escapeHtml(text) {
@@ -2579,41 +3018,6 @@
       div.textContent = text;
       return div.innerHTML;
     }
-    
-    function showEmptyState(message) {
-      const container = document.getElementById('main-content');
-      container.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-state-icon">🍋</div>
-          <div class="empty-state-text">${message}</div>
-        </div>
-      `;
-    }
-    
-    function showToast(message, type = 'success') {
-      const toast = document.createElement('div');
-      toast.className = `toast ${type}`;
-      toast.textContent = message;
-      document.body.appendChild(toast);
-      
-      setTimeout(() => toast.classList.add('show'), 100);
-      
-      setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 400);
-      }, 3000);
-    }
-    
-    // Modal close on backdrop click
-    document.querySelectorAll('.modal').forEach(modal => {
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          modal.classList.remove('active');
-        }
-      });
-    });
-    
-    console.log('🍋 LemmOn V2.0 hazır!');
   </script>
 </body>
 </html>
